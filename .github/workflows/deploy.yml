@@ -1,0 +1,46 @@
+name: Hexo Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - master  # 兼容 main 和 master 分支，防止分支名不对导致不触发
+  workflow_dispatch: # 允许在 GitHub 网页的 Actions 页面手动点击运行测试
+
+# 显式赋予 GitHub Actions 写入权限，这是推送到 gh-pages 分支必需的
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 拉取你的博客源代码
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          submodules: true  # 如果你的 Hexo 主题是作为 Git 子模块引入的，这行必不可少
+          fetch-depth: 0
+
+      # 2. 配置 Node.js 环境
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # 推荐使用稳定的 Node.js 20 版本
+         # cache: 'npm'       # 缓存 npm 依赖，加快以后每次部署的速度
+
+      # 3. 安装 Hexo 和主题所需的依赖
+      - name: Install Dependencies
+        run: npm install
+
+      # 4. 生成 public 静态文件
+      - name: Generate Static Files
+        run: npx hexo generate
+
+      # 5. 将生成的 public 文件夹部署到 gh-pages 分支
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public  # Hexo 默认的静态文件输出目录
+          commit_message: "docs: auto deploy from GitHub Actions [skip ci]"
