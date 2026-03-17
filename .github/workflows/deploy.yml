@@ -27,7 +27,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20' # 推荐使用稳定的 Node.js 20 版本
-          cache: 'npm'       # 缓存 npm 依赖，加快以后每次部署的速度
+         # cache: 'npm'       # 缓存 npm 依赖，加快以后每次部署的速度
 
       # 3. 安装 Hexo 和主题所需的依赖
       - name: Install Dependencies
