@@ -133,6 +133,9 @@ pre,
 
 #board {
   border-radius: 14px;
+  /* 覆盖主题的 margin-top:-2rem（与 banner 叠压），改为与目录栏顶部对齐 */
+  margin-top: 0 !important;
+  padding-top: 2rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05),
               0 4px 20px rgba(0, 0, 0, 0.06);
   overflow: hidden;
@@ -142,12 +145,12 @@ pre,
 
 .card {
   border-radius: 10px;
-  transition: box-shadow 0.22s ease, transform 0.22s ease;
+  transition: box-shadow 0.22s ease;
 }
 
 .card:hover {
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.10);
-  transform: translateY(-3px);
+  /* 不要上浮动画 */
 }
 
 /* ===== 导航栏 Navbar ===== */
@@ -180,6 +183,105 @@ pre,
 
 .post-meta .iconfont {
   margin-right: 0.2em;
+}
+
+/* ===== 两栏布局：左目录 20% + 右文章 80% Two-Column Layout ===== */
+
+@media (min-width: 992px) {
+  /* 隐藏右侧空白列 */
+  .container-fluid.nopadding-x > .row.nomargin-x > .side-col:last-child {
+    display: none !important;
+  }
+
+  /* 左目录列：20% */
+  .container-fluid.nopadding-x > .row.nomargin-x > .side-col:first-child {
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
+
+  /* 文章内容列：80% */
+  .container-fluid.nopadding-x > .row.nomargin-x > .col-lg-8 {
+    flex: 0 0 80%;
+    max-width: 80%;
+  }
+}
+
+/* ===== TOC 目录样式优化 ===== */
+
+/* 目录标题 */
+.toc-header {
+  font-size: 0.85rem !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sec-text-color);
+  border-bottom: 1px solid var(--line-color);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.8rem !important;
+}
+
+/* 目录条目字号 */
+.tocbot-list a {
+  font-size: 0.875rem !important;
+  line-height: 1.5;
+}
+
+.tocbot-list ol a {
+  font-size: 0.8125rem !important;
+  color: var(--sec-text-color);
+}
+
+/* 当前活跃条目 */
+.tocbot-active-link {
+  color: var(--post-link-color) !important;
+  font-weight: 600;
+}
+
+/* 目录指示线（左侧彩色条） */
+.toc-list-item::before {
+  background: var(--post-link-color) !important;
+}
+
+/* 滚动条（目录内） */
+.toc-body::-webkit-scrollbar {
+  display: none;
+}
+
+/* 目录整体 padding 微调：与 #board 的 padding-top 对齐 */
+.sidebar {
+  padding-top: 2rem !important;
+  padding-right: 1.2rem;
+}
+
+/* ===== TOC 条目：单行省略，不换行 ===== */
+
+/*
+ * 用 flex + flex-wrap 替换主题的 -webkit-box / line-clamp：
+ *   行1: [> toggle] [link 文字截断]
+ *   行2: [ol 子列表，宽度 100%，折叠机制不受影响]
+ * 不设 overflow: visible，tocbot 的 max-height 折叠照常工作。
+ */
+.toc-list-item {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  width: 100%;          /* 动态渲染时确保 li 宽度有约束 */
+  box-sizing: border-box;
+  -webkit-line-clamp: unset !important;
+  padding: 0.1rem 0;
+}
+
+/* 链接占满 toggle 之外的所有空间，超长截断 */
+.toc-list-item > a {
+  flex: 1;
+  min-width: 0; /* flex item 必须有 min-width:0 才能触发 text-overflow */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 子列表独占新行（保证折叠/展开动画不被 flex 行打断） */
+.toc-list-item > ol {
+  flex: 0 0 100%;
 }
 
 /* ===== 页脚 Footer ===== */

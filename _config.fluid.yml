@@ -89,7 +89,7 @@ navbar:
 
 # ===== Banner =====
 banner:
-  parallax: true
+  parallax: false
   width_height_ratio: 0.3
 
 # ===== 首页 =====
@@ -101,10 +101,49 @@ index:
 post:
   banner_img_height: 45
   banner_mask_alpha: 0.35
+  meta:
+    author:
+      enable: false
+    date:
+      enable: true
+      format: "YYYY-MM-DD"
+    wordcount:
+      enable: true
+    reading_time:
+      enable: true
   toc:
     enable: true
+    placement: left
     headingSelector: "h1,h2,h3,h4"
     collapseDepth: 2
+  comments:
+    enable: true
+    type: giscus
+
+# ===== 阅读量统计（不蒜子，无需注册） =====
+web_analytics:
+  enable: false
+
+footer:
+  statistics:
+    enable: true
+    source: busuanzi
+    pv_format: "总访问量 {} 次"
+    uv_format: "总访客数 {} 人"
+
+# ===== 评论：Giscus（GitHub Discussions） =====
+giscus:
+  repo: gouhongshen-gmail/article.github.io
+  repo-id: R_kgDORpl4oA
+  category: General              # Discussions 开启后默认有此分类
+  category-id: DIC_kwDORpl4oM4C4qLf                  # ← 第3步：从 giscus.app 复制填入
+  theme-light: light
+  theme-dark: dark
+  mapping: pathname
+  reactions-enabled: 1
+  emit-metadata: 0
+  input-position: top
+  lang: zh-CN
 
 # ===== 代码高亮 =====
 code:
