@@ -7,7 +7,7 @@
   'use strict';
 
   const WORKER_URL = 'https://my-github-blog-comments-worker.gouhongshen.workers.dev';
-  const TURNSTILE_SITE_KEY = ''; // 填入 Cloudflare Turnstile Site Key，留空则不启用
+  const TURNSTILE_SITE_KEY = '0x4AAAAAACsl_HLrXNrnlNhB'; // 填入 Cloudflare Turnstile Site Key，留空则不启用
 
   // ── 仅在文章页运行 ─────────────────────────────────
   const postContent = document.querySelector('.post-content');
