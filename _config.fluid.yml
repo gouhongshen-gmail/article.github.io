@@ -100,8 +100,9 @@ banner:
 
 # ===== 首页 =====
 index:
-  banner_img_height: 50
-  banner_mask_alpha: 0.35
+  banner_img: /images/banner.jpg
+  banner_img_height: 60
+  banner_mask_alpha: 0.3
   slogan:
     enable: true
     text: "Since time immemorial, the wise have faded into silence — only those who drank have left their names."
