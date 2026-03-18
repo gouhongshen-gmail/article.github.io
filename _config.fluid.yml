@@ -1,0 +1,115 @@
+# =====================================================
+# Fluid 主题配置覆盖
+# 此文件中的配置将覆盖 node_modules/hexo-theme-fluid/_config.yml 中的默认值
+# =====================================================
+
+# 自定义 <head> 内容 —— 预加载字体
+custom_head: >-
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/index.css">
+
+# 自定义 CSS 文件
+custom_css: /css/custom.css
+
+# ===== 字体 =====
+font:
+  font_size: 17px
+  font_family: "'LXGW WenKai Screen', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, -apple-system, sans-serif"
+  letter_spacing: 0.01em
+  code_font_size: 90%
+
+# ===== 深色模式 =====
+dark_mode:
+  enable: true
+  default: auto
+
+# ===== 颜色 =====
+color:
+  # 背景
+  body_bg_color: "#f5f4f0"
+  body_bg_color_dark: "#0f172a"
+
+  # 导航栏
+  navbar_bg_color: "#1e293b"
+  navbar_bg_color_dark: "#0a0f1e"
+  navbar_text_color: "#f1f5f9"
+  navbar_text_color_dark: "#e2e8f0"
+
+  # 副标题
+  subtitle_color: "#f1f5f9"
+  subtitle_color_dark: "#cbd5e1"
+
+  # 看板（内容区白底卡片）
+  board_color: "#ffffff"
+  board_color_dark: "#1e293b"
+
+  # 正文
+  text_color: "#374151"
+  text_color_dark: "#d1d5db"
+  sec_text_color: "#6b7280"
+  sec_text_color_dark: "#9ca3af"
+
+  # 文章正文
+  post_text_color: "#1f2937"
+  post_text_color_dark: "#e2e8f0"
+  post_heading_color: "#111827"
+  post_heading_color_dark: "#f9fafb"
+
+  # 链接
+  post_link_color: "#2563eb"
+  post_link_color_dark: "#60a5fa"
+  link_hover_color: "#1d4ed8"
+  link_hover_color_dark: "#93c5fd"
+  link_hover_bg_color: "#eff6ff"
+  link_hover_bg_color_dark: "#1e3a5f"
+
+  # 分割线
+  line_color: "#e5e7eb"
+  line_color_dark: "#334155"
+
+  # 按钮
+  button_bg_color: "#f3f4f6"
+  button_bg_color_dark: "#1e293b"
+  button_hover_bg_color: "#e5e7eb"
+  button_hover_bg_color_dark: "#334155"
+
+  # 滚动条
+  scrollbar_color: "#d1d5db"
+  scrollbar_color_dark: "#475569"
+  scrollbar_hover_color: "#9ca3af"
+  scrollbar_hover_color_dark: "#64748b"
+
+# ===== 导航栏 =====
+navbar:
+  ground_glass:
+    enable: true
+    px: 8
+    alpha: 0.85
+
+# ===== Banner =====
+banner:
+  parallax: true
+  width_height_ratio: 0.3
+
+# ===== 首页 =====
+index:
+  banner_img_height: 50
+  banner_mask_alpha: 0.35
+
+# ===== 文章页 =====
+post:
+  banner_img_height: 45
+  banner_mask_alpha: 0.35
+  toc:
+    enable: true
+    headingSelector: "h1,h2,h3,h4"
+    collapseDepth: 2
+
+# ===== 代码高亮 =====
+code:
+  copy_btn: true
+  highlight:
+    enable: true
+    style: "atom-one-light"
+    style_dark: "atom-one-dark"
