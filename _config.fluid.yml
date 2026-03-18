@@ -3,6 +3,10 @@
 # 此文件中的配置将覆盖 node_modules/hexo-theme-fluid/_config.yml 中的默认值
 # =====================================================
 
+# 网站图标
+favicon: /images/favicon.png
+apple_touch_icon: /images/apple-touch-icon.png
+
 # 自定义 <head> 内容 —— 预加载字体
 custom_head: >-
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
