@@ -9,7 +9,7 @@ tags:
 categories:
   - 技术
 excerpt: "2025 年，AI Agent 的记忆层已从锦上添花演变为独立的基础设施赛道。Mem0 解决记住，Letta 解决自主编辑记忆，而 Memoria 解决的是：记忆的完整性、可审计性与可逆性——它将 Git 的版本管理范式原生嫁接到 Agent 的记忆管理中。"
-banner_img: /images/banner.jpg
+banner_img: /images/logo.jpg
 ---
 
 
