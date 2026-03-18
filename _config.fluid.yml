@@ -88,6 +88,7 @@ color:
 
 # ===== 导航栏 =====
 navbar:
+  blog_title: "GHSRUSHER"
   ground_glass:
     enable: true
     px: 8
@@ -105,7 +106,8 @@ index:
   banner_mask_alpha: 0.3
   slogan:
     enable: true
-    text: "Since time immemorial, the wise have faded into silence — only those who drank have left their names."
+    # text: "Since time immemorial, the wise have faded into silence — only those who drank have left their names."
+    text: "Fear me, if you dare!"
 
 # ===== 文章页 =====
 post:
