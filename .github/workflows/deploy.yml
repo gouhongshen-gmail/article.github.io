@@ -73,7 +73,7 @@ jobs:
           path: public
 
   deploy-cloudflare-pages:
-    if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    if: ${{ vars.CLOUDFLARE_PAGES_PROJECT != '' }}
     needs: build-site
     runs-on: ubuntu-latest
     steps:
@@ -91,7 +91,7 @@ jobs:
           command: pages deploy public --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT || 'chronosina' }}
 
   deploy-github-pages:
-    if: ${{ secrets.CLOUDFLARE_API_TOKEN == '' }}
+    if: ${{ vars.CLOUDFLARE_PAGES_PROJECT == '' }}
     needs: build-site
     runs-on: ubuntu-latest
     steps:
@@ -109,7 +109,7 @@ jobs:
           commit_message: "docs: auto deploy from GitHub Actions [skip ci]"
 
   deploy-workers:
-    if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    if: ${{ vars.CLOUDFLARE_PAGES_PROJECT != '' }}
     needs: build-site
     runs-on: ubuntu-latest
     strategy:
