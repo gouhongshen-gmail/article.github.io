@@ -3,12 +3,15 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: GHSRUSHER
-subtitle: ''
-description: ''
+title: 历知 ChronoSina
+subtitle: Learn Chinese through history
+description: Learn Chinese language and culture through history articles.
 keywords:
-author: John Doe
-language: zh-CN
+  - learn chinese through history
+  - chinese history in english
+  - chinese vocabulary
+author: ChronoSina
+language: en
 timezone: ''
 
 # URL
@@ -98,6 +101,27 @@ ignore:
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
 theme: fluid
+
+plugins:
+  - hexo-generator-sitemap
+  - hexo-generator-feed
+
+sitemap:
+  path: sitemap.xml
+  rel: true
+
+feed:
+  type: atom
+  path: atom.xml
+  limit: 20
+
+platform:
+  free_article_limit: 3
+  workers:
+    auth: https://chronosina-auth.example.workers.dev
+    sync: https://chronosina-sync.example.workers.dev
+    payment: https://chronosina-payment.example.workers.dev
+    media: https://chronosina-media.example.workers.dev
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment

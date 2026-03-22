@@ -1,0 +1,203 @@
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.onboarding-overlay.is-demo {
+  align-items: flex-end;
+  padding-bottom: 2rem;
+}
+
+.onboarding-card {
+  pointer-events: auto;
+  width: min(460px, calc(100vw - 2rem));
+  padding: 1.4rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 26px 60px rgba(15, 23, 42, 0.2);
+  backdrop-filter: blur(18px);
+  animation: onboarding-in 0.25s ease-out;
+}
+
+.onboarding-step__eyebrow {
+  margin: 0 0 0.35rem;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.onboarding-step__title {
+  margin: 0 0 0.75rem;
+  color: #0f172a;
+  font-size: 1.4rem;
+}
+
+.onboarding-step__body {
+  margin: 0;
+  color: #475569;
+  line-height: 1.75;
+}
+
+.onboarding-step__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.onboarding-button {
+  border: 0;
+  cursor: pointer;
+  padding: 0.72rem 1rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0f172a, #1e3a8a);
+  color: #f8fafc;
+  font: inherit;
+  font-weight: 700;
+}
+
+.onboarding-button--ghost {
+  background: rgba(241, 245, 249, 0.96);
+  color: #334155;
+}
+
+.onboarding-levels {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.onboarding-level {
+  display: flex;
+  gap: 0.7rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.94);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  color: #0f172a;
+}
+
+.onboarding-level input {
+  margin-top: 0.2rem;
+}
+
+.onboarding-spotlight {
+  position: relative;
+  z-index: 1202;
+  box-shadow:
+    0 0 0 4px rgba(59, 130, 246, 0.45),
+    0 0 0 9999px rgba(15, 23, 42, 0.42);
+  border-radius: 10px;
+  animation: onboarding-pulse 1.2s ease-in-out infinite;
+}
+
+.onboarding-tooltip {
+  position: fixed;
+  z-index: 1203;
+  width: min(280px, calc(100vw - 2rem));
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.96);
+  color: #f8fafc;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.3);
+}
+
+.onboarding-tooltip__title {
+  margin-bottom: 0.35rem;
+  font-weight: 700;
+}
+
+.onboarding-tooltip__body {
+  color: rgba(226, 232, 240, 0.9);
+  line-height: 1.65;
+}
+
+@keyframes onboarding-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes onboarding-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@media (max-width: 768px) {
+  .onboarding-overlay.is-demo {
+    align-items: flex-end;
+    padding: 1rem;
+  }
+
+  .onboarding-card {
+    padding: 1.1rem;
+  }
+
+  .onboarding-step__actions {
+    flex-direction: column-reverse;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-user-color-scheme]) .onboarding-card,
+  :root:not([data-user-color-scheme]) .onboarding-level {
+    background: rgba(15, 23, 42, 0.94);
+    border-color: rgba(148, 163, 184, 0.16);
+  }
+
+  :root:not([data-user-color-scheme]) .onboarding-step__title,
+  :root:not([data-user-color-scheme]) .onboarding-level {
+    color: #f8fafc;
+  }
+
+  :root:not([data-user-color-scheme]) .onboarding-step__body,
+  :root:not([data-user-color-scheme]) .onboarding-step__eyebrow {
+    color: #cbd5e1;
+  }
+
+  :root:not([data-user-color-scheme]) .onboarding-button--ghost {
+    background: rgba(30, 41, 59, 0.96);
+    color: #f8fafc;
+  }
+}
+
+[data-user-color-scheme="dark"] .onboarding-card,
+[data-user-color-scheme="dark"] .onboarding-level {
+  background: rgba(15, 23, 42, 0.94);
+  border-color: rgba(148, 163, 184, 0.16);
+}
+
+[data-user-color-scheme="dark"] .onboarding-step__title,
+[data-user-color-scheme="dark"] .onboarding-level {
+  color: #f8fafc;
+}
+
+[data-user-color-scheme="dark"] .onboarding-step__body,
+[data-user-color-scheme="dark"] .onboarding-step__eyebrow {
+  color: #cbd5e1;
+}
+
+[data-user-color-scheme="dark"] .onboarding-button--ghost {
+  background: rgba(30, 41, 59, 0.96);
+  color: #f8fafc;
+}

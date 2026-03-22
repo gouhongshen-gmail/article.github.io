@@ -1,0 +1,246 @@
+.chronosina-auth[hidden] {
+  display: none !important;
+}
+
+.chronosina-auth {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.52);
+  backdrop-filter: blur(6px);
+}
+
+.chronosina-auth__dialog {
+  position: relative;
+  width: min(460px, calc(100vw - 2rem));
+  padding: 1.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.2);
+}
+
+.chronosina-auth__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.chronosina-auth__eyebrow {
+  margin: 0 0 0.4rem;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.chronosina-auth__title {
+  margin: 0 0 0.65rem;
+  color: #0f172a;
+  font-size: 1.45rem;
+}
+
+.chronosina-auth__body,
+.chronosina-auth__message {
+  margin: 0;
+  color: #475569;
+  line-height: 1.7;
+}
+
+.chronosina-auth__message {
+  margin-top: 0.85rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 16px;
+}
+
+.chronosina-auth__message.success {
+  background: rgba(34, 197, 94, 0.12);
+  color: #166534;
+}
+
+.chronosina-auth__message.error {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+
+.chronosina-auth__message.info {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+}
+
+.chronosina-auth__actions {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.chronosina-auth__provider,
+.chronosina-auth__submit,
+.chronosina-auth__link {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.chronosina-auth__provider,
+.chronosina-auth__submit {
+  width: 100%;
+  padding: 0.82rem 1rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0f172a, #1d4ed8);
+  color: #f8fafc;
+  font-weight: 700;
+}
+
+.chronosina-auth__provider--secondary {
+  background: rgba(241, 245, 249, 0.96);
+  color: #0f172a;
+}
+
+.chronosina-auth__separator {
+  position: relative;
+  margin: 1rem 0;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.chronosina-auth__separator::before {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto;
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.chronosina-auth__separator span {
+  position: relative;
+  padding: 0 0.75rem;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.chronosina-auth__form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.chronosina-auth__input {
+  width: 100%;
+  padding: 0.82rem 0.95rem;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 16px;
+  background: rgba(248, 250, 252, 0.94);
+  color: #0f172a;
+}
+
+.chronosina-auth__input--code {
+  letter-spacing: 0.35em;
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+.chronosina-auth__link {
+  margin-top: 0.9rem;
+  padding: 0;
+  color: #2563eb;
+  background: transparent;
+  font-weight: 700;
+}
+
+.chronosina-auth__meta {
+  display: grid;
+  gap: 0.8rem;
+  margin: 1rem 0 0;
+}
+
+.chronosina-auth__meta div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 16px;
+  background: rgba(248, 250, 252, 0.94);
+}
+
+.chronosina-auth__meta dt {
+  color: #64748b;
+}
+
+.chronosina-auth__meta dd {
+  margin: 0;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.chronosina-auth-nav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.chronosina-auth-nav__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.2rem;
+  padding: 0.12rem 0.42rem;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.18);
+  color: #bbf7d0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-user-color-scheme]) .chronosina-auth__dialog,
+  :root:not([data-user-color-scheme]) .chronosina-auth__meta div,
+  :root:not([data-user-color-scheme]) .chronosina-auth__input {
+    background: rgba(15, 23, 42, 0.96);
+    border-color: rgba(148, 163, 184, 0.18);
+  }
+
+  :root:not([data-user-color-scheme]) .chronosina-auth__title,
+  :root:not([data-user-color-scheme]) .chronosina-auth__meta dd,
+  :root:not([data-user-color-scheme]) .chronosina-auth__provider--secondary,
+  :root:not([data-user-color-scheme]) .chronosina-auth__input {
+    color: #f8fafc;
+  }
+
+  :root:not([data-user-color-scheme]) .chronosina-auth__body,
+  :root:not([data-user-color-scheme]) .chronosina-auth__eyebrow,
+  :root:not([data-user-color-scheme]) .chronosina-auth__meta dt,
+  :root:not([data-user-color-scheme]) .chronosina-auth__separator {
+    color: #cbd5e1;
+  }
+}
+
+[data-user-color-scheme="dark"] .chronosina-auth__dialog,
+[data-user-color-scheme="dark"] .chronosina-auth__meta div,
+[data-user-color-scheme="dark"] .chronosina-auth__input {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+[data-user-color-scheme="dark"] .chronosina-auth__title,
+[data-user-color-scheme="dark"] .chronosina-auth__meta dd,
+[data-user-color-scheme="dark"] .chronosina-auth__provider--secondary,
+[data-user-color-scheme="dark"] .chronosina-auth__input {
+  color: #f8fafc;
+}
+
+[data-user-color-scheme="dark"] .chronosina-auth__body,
+[data-user-color-scheme="dark"] .chronosina-auth__eyebrow,
+[data-user-color-scheme="dark"] .chronosina-auth__meta dt,
+[data-user-color-scheme="dark"] .chronosina-auth__separator {
+  color: #cbd5e1;
+}

@@ -7,23 +7,19 @@
   'use strict';
 
   const WORKER_URL = 'https://my-github-blog-comments-worker.gouhongshen.workers.dev';
-  const TURNSTILE_SITE_KEY = '0x4AAAAAACsl_HLrXNrnlNhB'; // 填入 Cloudflare Turnstile Site Key，留空则不启用
+  const TURNSTILE_SITE_KEY = '0x4AAAAAACsl_HLrXNrnlNhB';
+  const SITE_ROOT = (((window.CONFIG && window.CONFIG.root) || '/').trim() || '/')
+    .replace(/\/+$/, '/') || '/';
 
-  // ── 仅在文章页运行 ─────────────────────────────────
   const postContent = document.querySelector('.post-content');
   if (!postContent) return;
 
-  // ── 从 URL 提取 postSlug ────────────────────────────
-  // 例：/article.github.io/2025/12/01/memoria-agent-memory/ → 2025/12/01/memoria-agent-memory
-  const postSlug = window.location.pathname
-    .replace(/^\/article\.github\.io\//, '')
-    .replace(/\/$/, '');
+  const postSlug = stripSiteRoot(window.location.pathname).replace(/\/$/, '');
   const postTitle = (document.querySelector('h1#seo-header') || document.querySelector('h1'))
     ?.textContent?.trim() || postSlug;
 
   if (!postSlug) return;
 
-  // ── 初始化 ─────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', init);
   if (document.readyState !== 'loading') init();
 
@@ -34,11 +30,9 @@
     section.id = 'custom-comments';
     section.innerHTML = buildHTML();
 
-    // 插入到文章内容末尾
     const articleEl = document.querySelector('#board article') || postContent;
     articleEl.appendChild(section);
 
-    // 加载 Turnstile 脚本
     if (TURNSTILE_SITE_KEY) {
       const s = document.createElement('script');
       s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
@@ -50,7 +44,15 @@
     document.getElementById('comment-form').addEventListener('submit', handleSubmit);
   }
 
-  // ── HTML 模板 ───────────────────────────────────────
+  function stripSiteRoot(pathname) {
+    const rawPath = String(pathname || '');
+    if (SITE_ROOT !== '/' && rawPath.startsWith(SITE_ROOT)) {
+      return rawPath.slice(SITE_ROOT.length);
+    }
+
+    return rawPath.replace(/^\/+/, '');
+  }
+
   function buildHTML() {
     const turnstileWidget = TURNSTILE_SITE_KEY
       ? `<div class="cf-turnstile" data-sitekey="${TURNSTILE_SITE_KEY}" data-theme="auto"></div>`
@@ -81,7 +83,6 @@
     `;
   }
 
-  // ── 加载评论 ────────────────────────────────────────
   async function loadComments() {
     const list = document.getElementById('comments-list');
     try {
@@ -105,7 +106,6 @@
     }
   }
 
-  // ── 渲染单条评论 ────────────────────────────────────
   function renderComment(c) {
     const initial = (c.author || '匿').charAt(0).toUpperCase();
     const time = formatTime(c.created_at);
@@ -125,7 +125,6 @@
     `;
   }
 
-  // ── 提交评论 ────────────────────────────────────────
   async function handleSubmit(e) {
     e.preventDefault();
     const form = e.target;
@@ -135,7 +134,6 @@
     const content = form.content.value.trim();
     if (!content) return;
 
-    // 获取 Turnstile token（如果启用）
     let turnstileToken = '';
     if (TURNSTILE_SITE_KEY) {
       const tokenInput = form.querySelector('[name="cf-turnstile-response"]');
@@ -170,7 +168,6 @@
       showMsg(msg, '评论已提交 🎉', 'success');
       form.reset();
 
-      // 把新评论追加到列表
       if (data.comment) {
         const list = document.getElementById('comments-list');
         const emptyEl = list.querySelector('.comments-empty');
@@ -187,7 +184,6 @@
         }
       }
 
-      // 重置 Turnstile
       if (window.turnstile) window.turnstile.reset();
     } catch (err) {
       showMsg(msg, err.message, 'error');
@@ -197,7 +193,6 @@
     }
   }
 
-  // ── 工具函数 ────────────────────────────────────────
   function showMsg(el, text, type) {
     el.textContent = text;
     el.className = `comment-msg ${type}`;

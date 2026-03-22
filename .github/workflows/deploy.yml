@@ -1,46 +1,138 @@
-name: Hexo Deploy
+name: Deploy Blog + Workers
 
 on:
   push:
     branches:
       - main
-      - master  # 兼容 main 和 master 分支，防止分支名不对导致不触发
-  workflow_dispatch: # 允许在 GitHub 网页的 Actions 页面手动点击运行测试
+      - master
+  workflow_dispatch:
 
-# 显式赋予 GitHub Actions 写入权限，这是推送到 gh-pages 分支必需的
 permissions:
   contents: write
 
 jobs:
-  build-and-deploy:
+  build-site:
     runs-on: ubuntu-latest
+    env:
+      CHRONOSINA_AUTH_BASE_URL: ${{ vars.CHRONOSINA_AUTH_BASE_URL }}
+      CHRONOSINA_FRONTEND_URL: ${{ vars.CHRONOSINA_FRONTEND_URL }}
+      CHRONOSINA_FREE_ARTICLE_LIMIT: ${{ vars.CHRONOSINA_FREE_ARTICLE_LIMIT }}
+      CHRONOSINA_MEDIA_BASE_URL: ${{ vars.CHRONOSINA_MEDIA_BASE_URL }}
+      CHRONOSINA_PAYMENT_BASE_URL: ${{ vars.CHRONOSINA_PAYMENT_BASE_URL }}
+      CHRONOSINA_SYNC_BASE_URL: ${{ vars.CHRONOSINA_SYNC_BASE_URL }}
     steps:
-      # 1. 拉取你的博客源代码
-      - name: Checkout Source Code
+      - name: Checkout source
         uses: actions/checkout@v4
         with:
-          submodules: true  # 如果你的 Hexo 主题是作为 Git 子模块引入的，这行必不可少
+          submodules: true
           fetch-depth: 0
 
-      # 2. 配置 Node.js 环境
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # 推荐使用稳定的 Node.js 20 版本
-         # cache: 'npm'       # 缓存 npm 依赖，加快以后每次部署的速度
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            workers/package-lock.json
 
-      # 3. 安装 Hexo 和主题所需的依赖
-      - name: Install Dependencies
-        run: npm install
+      - name: Install site dependencies
+        run: npm ci
 
-      # 4. 生成 public 静态文件
-      - name: Generate Static Files
+      - name: Install worker dependencies
+        run: npm ci --prefix workers
+
+      - name: Generate static files
         run: npx hexo generate
 
-      # 5. 将生成的 public 文件夹部署到 gh-pages 分支
+      - name: Verify generated artifacts
+        run: |
+          test -f public/api/vocabulary.json
+          test -f public/api/articles-meta.json
+          test -f public/manifest.json
+          test -f public/service-worker.js
+          test -f public/atom.xml
+          test -f public/sitemap.xml
+
+      - name: Syntax check JS bundles
+        run: |
+          node --check source/js/platform-api.js
+          node --check source/js/auth-ui.js
+          node --check source/js/srs-engine.js
+          node --check source/js/sync.js
+          node --check source/js/paywall.js
+          node --check workers/auth/src/index.js
+          node --check workers/sync/src/index.js
+          node --check workers/payment/src/index.js
+          node --check workers/media/src/index.js
+
+      - name: Upload site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-public
+          path: public
+
+  deploy-cloudflare-pages:
+    if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    needs: build-site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: site-public
+          path: public
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy public --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT || 'chronosina' }}
+
+  deploy-github-pages:
+    if: ${{ secrets.CLOUDFLARE_API_TOKEN == '' }}
+    needs: build-site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: site-public
+          path: public
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public  # Hexo 默认的静态文件输出目录
+          publish_dir: ./public
           commit_message: "docs: auto deploy from GitHub Actions [skip ci]"
+
+  deploy-workers:
+    if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    needs: build-site
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        worker: [auth, sync, payment, media]
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: workers/package-lock.json
+
+      - name: Install worker dependencies
+        run: npm ci --prefix workers
+
+      - name: Deploy worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: workers/${{ matrix.worker }}
+          command: deploy

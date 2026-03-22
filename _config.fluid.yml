@@ -8,19 +8,38 @@ favicon: /images/favicon.png
 apple_touch_icon: /images/apple-touch-icon.png
 
 # 自定义 <head> 内容 —— 预加载字体
-custom_head: >-
+custom_head: |-
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/index.css">
+  <meta name="theme-color" content="#1e293b">
 
 # 自定义 CSS 文件
 custom_css:
   - /css/custom.css
   - /css/comments.css
+  - /css/chinese-learning.css
+  - /css/srs.css
+  - /css/onboarding.css
+  - /css/auth.css
+  - /css/paywall.css
 
 # 自定义 JS 文件
 custom_js:
+  - /js/platform-api.js
+  - /js/auth-ui.js
+  - /js/analytics-events.js
   - /js/comments.js
+  - /js/chinese-learning.js
+  - /js/srs-engine.js
+  - /js/onboarding.js
+  - /js/sync.js
+  - /js/paywall.js
+
+meta:
+  author:
+    enable: true
+    name: "ChronoSina"
 
 # ===== 字体 =====
 font:
@@ -92,7 +111,7 @@ color:
 
 # ===== 导航栏 =====
 navbar:
-  blog_title: "GHSRUSHER"
+  blog_title: "历知 ChronoSina"
   ground_glass:
     enable: true
     px: 8
@@ -110,8 +129,7 @@ index:
   banner_mask_alpha: 0.3
   slogan:
     enable: true
-    # text: "Since time immemorial, the wise have faded into silence — only those who drank have left their names."
-    text: "Fear me, if you dare!"
+    text: "Learn Chinese through history"
 
 # ===== 文章页 =====
 post:
@@ -151,8 +169,8 @@ footer:
 giscus:
   repo: gouhongshen-gmail/article.github.io
   repo-id: R_kgDORpl4oA
-  category: General              # Discussions 开启后默认有此分类
-  category-id: DIC_kwDORpl4oM4C4qLf                  # ← 第3步：从 giscus.app 复制填入
+  category: General
+  category-id: DIC_kwDORpl4oM4C4qLf
   theme-light: light
   theme-dark: dark
   mapping: pathname
