@@ -1,0 +1,13 @@
+name = "chronosina-sync"
+main = "src/index.js"
+compatibility_date = "2024-12-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "chronosina-db"
+database_id = "cfcfe128-01ac-43c6-8df8-d9ba8328f1a7"
+
+[vars]
+FRONTEND_URL = "https://gouhongshen-gmail.github.io/article.github.io"
+JWT_ISSUER = "chronosina"
+FREE_ARTICLE_LIMIT = "3"
