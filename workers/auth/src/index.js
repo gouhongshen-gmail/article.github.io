@@ -130,7 +130,6 @@ async function exchangeXCode(request, env, code, codeVerifier) {
       'Content-Type': 'application/x-www-form-urlencoded'
     },
     body: new URLSearchParams({
-      client_id    : env.X_CLIENT_ID,
       code,
       code_verifier: codeVerifier,
       grant_type   : 'authorization_code',
