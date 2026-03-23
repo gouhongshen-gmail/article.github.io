@@ -122,14 +122,14 @@ async function exchangeXCode(request, env, code, codeVerifier) {
   assertConfigured(env, ['X_CLIENT_ID', 'X_CLIENT_SECRET']);
 
   const redirectUri = `${getOrigin(request)}/auth/x/callback`;
-  const basicAuth = btoa(`${env.X_CLIENT_ID}:${env.X_CLIENT_SECRET}`);
   const tokenResponse = await fetch('https://api.x.com/2/oauth2/token', {
     method : 'POST',
     headers: {
-      Authorization : `Basic ${basicAuth}`,
       'Content-Type': 'application/x-www-form-urlencoded'
     },
     body: new URLSearchParams({
+      client_id    : env.X_CLIENT_ID,
+      client_secret: env.X_CLIENT_SECRET,
       code,
       code_verifier: codeVerifier,
       grant_type   : 'authorization_code',
