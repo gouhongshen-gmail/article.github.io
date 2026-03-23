@@ -155,11 +155,8 @@ async function exchangeXCode(request, env, code, codeVerifier) {
 
   const profileData = await profileResponse.json();
   const user = profileData.data || {};
-  const email = tokenData.email || '';
-
-  if (!email) {
-    throw new Error('X OAuth did not return an email. Enable email scope in the X app settings.');
-  }
+  // X does not reliably return email; use a synthetic address from user ID
+  const email = tokenData.email || `x_${user.id}@x.twitter.user`;
 
   return {
     avatarUrl   : user.profile_image_url || '',
