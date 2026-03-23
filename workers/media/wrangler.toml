@@ -7,4 +7,4 @@ binding = "AUDIO_BUCKET"
 bucket_name = "chronosina-audio"
 
 [vars]
-FRONTEND_URL = "https://chronosina.pages.dev"
+FRONTEND_URL = "https://loonglore.com"
