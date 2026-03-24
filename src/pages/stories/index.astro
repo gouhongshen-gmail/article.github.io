@@ -30,44 +30,78 @@ function formatDate(date: Date) {
     {stories.length === 0 ? (
       <p class="empty-state">More stories coming soon!</p>
     ) : (
-      <ul class="story-grid" role="list">
-        {stories.map((story) => (
-          <li>
-            <a href={`/stories/${story.id}`} class="story-card">
-              <div class="card-top">
-                <span
-                  class="badge"
-                  style={`--badge-bg: ${difficultyColor[story.data.difficulty]}`}
-                >
-                  {story.data.difficulty.charAt(0).toUpperCase() +
-                    story.data.difficulty.slice(1)}
-                </span>
+      <>
+        <div class="filter-section">
+          <div class="filter-bar">
+            <button class="filter-pill active" data-filter="all">All</button>
+            <button class="filter-pill" data-filter="beginner">Beginner</button>
+            <button class="filter-pill" data-filter="intermediate">
+              Intermediate
+            </button>
+            <button class="filter-pill" data-filter="advanced">Advanced</button>
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Search by title or tags..."
+              id="search-input"
+            />
+          </div>
 
-                <h2 class="card-title">{story.data.title}</h2>
+          <div class="stats-line" id="stats-line">
+            {stories.length} stories · {stories.filter((s) => s.data.difficulty === 'beginner').length} beginner ·
+            {stories.filter((s) => s.data.difficulty === 'intermediate').length} intermediate ·
+            {stories.filter((s) => s.data.difficulty === 'advanced').length} advanced
+          </div>
+        </div>
 
-                {(story.data.excerpt || story.data.description) && (
-                  <p class="card-excerpt">
-                    {story.data.excerpt || story.data.description}
-                  </p>
-                )}
-              </div>
+        <ul class="story-grid" role="list" id="story-grid">
+          {stories.map((story) => (
+            <li
+              class="story-item"
+              data-difficulty={story.data.difficulty}
+              data-tags={story.data.tags.join(' ').toLowerCase()}
+              data-title={story.data.title.toLowerCase()}
+            >
+              <a href={`/stories/${story.id}`} class="story-card">
+                <div class="card-top">
+                  <span
+                    class="badge"
+                    style={`--badge-bg: ${difficultyColor[story.data.difficulty]}`}
+                  >
+                    {story.data.difficulty.charAt(0).toUpperCase() +
+                      story.data.difficulty.slice(1)}
+                  </span>
 
-              <div class="card-bottom">
-                {story.data.tags.length > 0 && (
-                  <div class="tag-list">
-                    {story.data.tags.map((tag: string) => (
-                      <span class="tag">{tag}</span>
-                    ))}
-                  </div>
-                )}
-                <time class="card-date" datetime={story.data.date.toISOString()}>
-                  {formatDate(story.data.date)}
-                </time>
-              </div>
-            </a>
-          </li>
-        ))}
-      </ul>
+                  <h2 class="card-title">{story.data.title}</h2>
+
+                  {(story.data.excerpt || story.data.description) && (
+                    <p class="card-excerpt">
+                      {story.data.excerpt || story.data.description}
+                    </p>
+                  )}
+                </div>
+
+                <div class="card-bottom">
+                  {story.data.tags.length > 0 && (
+                    <div class="tag-list">
+                      {story.data.tags.map((tag: string) => (
+                        <span class="tag">{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                  <time class="card-date" datetime={story.data.date.toISOString()}>
+                    {formatDate(story.data.date)}
+                  </time>
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <div class="no-results-message" id="no-results">
+          No stories match your filters.
+        </div>
+      </>
     )}
   </main>
 </BaseLayout>
@@ -105,6 +139,75 @@ function formatDate(date: Date) {
     padding: var(--space-3xl) 0;
   }
 
+  .filter-section {
+    margin-bottom: 24px;
+  }
+
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .filter-pill {
+    padding: 6px 16px;
+    border-radius: var(--radius-full);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    font-family: inherit;
+  }
+
+  .filter-pill:hover {
+    transform: translateY(-1px);
+  }
+
+  .filter-pill.active {
+    background: var(--color-vermillion);
+    color: white;
+    border-color: var(--color-vermillion);
+  }
+
+  .search-input {
+    width: 200px;
+    height: 36px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    padding: 0 16px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+
+  .search-input::placeholder {
+    color: var(--color-text-secondary);
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--color-vermillion);
+    box-shadow: 0 0 0 3px rgba(220, 88, 50, 0.1);
+  }
+
+  @media (max-width: 640px) {
+    .search-input {
+      flex: 1;
+      min-width: 150px;
+    }
+  }
+
+  .stats-line {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 16px;
+  }
+
   .story-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -124,6 +227,14 @@ function formatDate(date: Date) {
     .story-grid {
       grid-template-columns: repeat(3, 1fr);
     }
+  }
+
+  .story-item {
+    transition: opacity 0.2s;
+  }
+
+  .story-item.hidden {
+    display: none;
   }
 
   .story-card {
@@ -212,6 +323,18 @@ function formatDate(date: Date) {
     color: var(--color-text-secondary);
   }
 
+  .no-results-message {
+    display: none;
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+    padding: var(--space-2xl) 0;
+  }
+
+  .no-results-message.visible {
+    display: block;
+  }
+
   /* Dark mode overrides */
   :global([data-theme='dark']) .story-card {
     background: var(--color-surface);
@@ -228,3 +351,69 @@ function formatDate(date: Date) {
       0 2px 4px -2px rgba(0, 0, 0, 0.2);
   }
 </style>
+
+<script is:inline>
+  // Client-side filtering script
+  const filterPills = document.querySelectorAll('.filter-pill');
+  const searchInput = document.getElementById('search-input');
+  const storyItems = document.querySelectorAll('.story-item');
+  const noResultsMessage = document.getElementById('no-results');
+
+  let currentFilter = 'all';
+  let currentSearch = '';
+
+  function applyFilters() {
+    let visibleCount = 0;
+
+    storyItems.forEach((item) => {
+      const difficulty = item.getAttribute('data-difficulty');
+      const tags = item.getAttribute('data-tags');
+      const title = item.getAttribute('data-title');
+
+      // Check difficulty filter
+      const matchesDifficulty = currentFilter === 'all' || difficulty === currentFilter;
+
+      // Check search filter
+      const searchLower = currentSearch.toLowerCase();
+      const matchesSearch =
+        !currentSearch ||
+        title.includes(searchLower) ||
+        tags.includes(searchLower);
+
+      // Apply visibility
+      if (matchesDifficulty && matchesSearch) {
+        item.classList.remove('hidden');
+        visibleCount++;
+      } else {
+        item.classList.add('hidden');
+      }
+    });
+
+    // Show/hide no results message
+    if (visibleCount === 0) {
+      noResultsMessage.classList.add('visible');
+    } else {
+      noResultsMessage.classList.remove('visible');
+    }
+  }
+
+  // Filter pill click handlers
+  filterPills.forEach((pill) => {
+    pill.addEventListener('click', (e) => {
+      const filter = e.target.getAttribute('data-filter');
+      currentFilter = filter;
+
+      // Update active state
+      filterPills.forEach((p) => p.classList.remove('active'));
+      e.target.classList.add('active');
+
+      applyFilters();
+    });
+  });
+
+  // Search input handler
+  searchInput.addEventListener('input', (e) => {
+    currentSearch = e.target.value;
+    applyFilters();
+  });
+</script>

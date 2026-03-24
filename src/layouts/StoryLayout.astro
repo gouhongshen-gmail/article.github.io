@@ -3,6 +3,7 @@ import BaseLayout from './BaseLayout.astro';
 import '@/styles/reading.css';
 import WordPopover from '@components/WordPopover.svelte';
 import ReadingToolbar from '@components/ReadingToolbar.svelte';
+import StoryCompletion from '@components/StoryCompletion.svelte';
 
 interface Props {
   title: string;
@@ -61,7 +62,7 @@ const articleSchema = {
   {/* Reading progress bar */}
   <div id="reading-progress" class="progress-bar" aria-hidden="true"></div>
 
-  <div class="story-wrapper">
+  <div class="story-wrapper" data-difficulty={difficulty?.toLowerCase()}>
     <a href="/stories" class="back-link">← All Stories</a>
 
     <header class="story-header">
@@ -77,6 +78,7 @@ const articleSchema = {
         )}
         {formattedDate && <time datetime={date}>{formattedDate}</time>}
         <span class="reading-time">{readingTime} min read</span>
+        <span class="word-count">{wordCount} words</span>
       </div>
       {tags.length > 0 && (
         <div class="story-tags">
@@ -90,6 +92,13 @@ const articleSchema = {
     <article class="story-content">
       <slot />
     </article>
+
+    <StoryCompletion
+      client:visible
+      storyTitle={title}
+      wordCount={wordCount}
+      readingTime={readingTime}
+    />
   </div>
 
   <WordPopover client:load />
@@ -176,6 +185,10 @@ const articleSchema = {
   }
 
   .reading-time {
+    white-space: nowrap;
+  }
+
+  .word-count {
     white-space: nowrap;
   }
 

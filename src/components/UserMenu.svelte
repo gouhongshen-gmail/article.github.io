@@ -36,7 +36,7 @@
     {#if dropdownOpen}
       <div class="dropdown">
         <a href="/dashboard" class="dropdown-item">Dashboard</a>
-        <a href="/review" class="dropdown-item">My Vocabulary</a>
+        <a href="/vocabulary" class="dropdown-item">My Vocabulary</a>
         <a href="/settings" class="dropdown-item">Settings</a>
         <button class="dropdown-item sign-out" onclick={signOut}>Sign Out</button>
       </div>

@@ -2,102 +2,171 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="Pricing" description="Simple, transparent pricing for LongLore. Start free or unlock everything with Pro.">
+<BaseLayout title="Pricing" description="Choose your learning path with LongLore. Start free or unlock everything with Pro or Scholar.">
   <div class="pricing-page">
-    <h1>Simple, Transparent Pricing</h1>
+    <!-- Header -->
+    <header class="pricing-header">
+      <h1>Choose Your Path</h1>
+      <p class="header-cn">选择你的道路</p>
+      <p class="header-subtitle">Start free, upgrade when you're ready.</p>
+    </header>
 
+    <!-- Toggle: Monthly / Annual -->
+    <div class="toggle-container">
+      <div class="toggle-group">
+        <button class="toggle-btn active" data-period="monthly">Monthly</button>
+        <button class="toggle-btn" data-period="annual">Annual <span class="save-badge">Save 20%</span></button>
+      </div>
+    </div>
+
+    <!-- Pricing Cards -->
     <div class="cards">
-      <!-- Free Tier -->
-      <div class="card">
+      <!-- Free Plan -->
+      <div class="card card-free">
         <div class="card-header">
           <span class="tier">Free</span>
-          <div class="price">
+          <span class="tier-cn">免费</span>
+          <div class="price" data-period-group="price-free">
             <span class="amount">$0</span>
-            <span class="period">forever</span>
+            <span class="period">/forever</span>
           </div>
         </div>
         <ul class="features">
-          <li>✓ All stories</li>
-          <li>✓ 50 word vocabulary</li>
-          <li>✓ 20 reviews/day</li>
-          <li>✓ Basic SRS</li>
-          <li>✓ Pinyin &amp; glosses</li>
+          <li><span class="checkmark">✓</span> 3 stories</li>
+          <li><span class="checkmark">✓</span> 50 vocabulary words</li>
+          <li><span class="checkmark">✓</span> 20 reviews/day</li>
+          <li><span class="checkmark">✓</span> Basic progress tracking</li>
         </ul>
         <a href="/login" class="cta cta-outlined">Get Started</a>
       </div>
 
-      <!-- Pro Tier -->
-      <div class="card card-pro">
+      <!-- Pro Plan (Featured) -->
+      <div class="card card-pro card-featured">
         <div class="badge">Most Popular</div>
         <div class="card-header">
           <span class="tier">Pro</span>
-          <div class="price">
-            <span class="amount">$6.99</span>
-            <span class="period">/month</span>
-          </div>
-          <div class="price-annual">
-            or <span class="annual-price">$49.99/year</span>
-            <span class="monthly-equiv">
-              (<s>$6.99</s> $4.17/mo)
-            </span>
+          <span class="tier-cn">进阶</span>
+          <div class="price" data-period-group="price-pro">
+            <div class="price-monthly" data-visible="true">
+              <span class="amount">$7.99</span>
+              <span class="period">/month</span>
+            </div>
+            <div class="price-annual" data-visible="false">
+              <span class="amount">$76.70</span>
+              <span class="period">/year</span>
+              <span class="save-label">Save 20%</span>
+            </div>
           </div>
         </div>
-        <p class="includes">Everything in Free, plus:</p>
         <ul class="features">
-          <li>✓ Unlimited vocabulary</li>
-          <li>✓ Unlimited reviews</li>
-          <li>✓ Advanced SRS</li>
-          <li>✓ Detailed statistics</li>
-          <li>✓ Streak freeze</li>
-          <li>✓ Priority support</li>
+          <li><span class="checkmark">✓</span> All stories</li>
+          <li><span class="checkmark">✓</span> Unlimited vocabulary</li>
+          <li><span class="checkmark">✓</span> Unlimited reviews</li>
+          <li><span class="checkmark">✓</span> Pinyin display modes</li>
+          <li><span class="checkmark">✓</span> Reading mode options</li>
+          <li><span class="checkmark">✓</span> Priority support</li>
+          <li><span class="checkmark">✓</span> LXGW WenKai font</li>
         </ul>
-        <a href="/login" class="cta cta-solid">Start Free Trial</a>
+        <a href="/login" class="cta cta-solid">Start 7-day free trial</a>
+      </div>
+
+      <!-- Scholar Plan -->
+      <div class="card card-scholar">
+        <div class="card-header">
+          <span class="tier">Scholar</span>
+          <span class="tier-cn">学者</span>
+          <div class="price" data-period-group="price-scholar">
+            <div class="price-monthly" data-visible="true">
+              <span class="amount">$14.99</span>
+              <span class="period">/month</span>
+            </div>
+            <div class="price-annual" data-visible="false">
+              <span class="amount">$143.90</span>
+              <span class="period">/year</span>
+            </div>
+          </div>
+        </div>
+        <ul class="features">
+          <li><span class="checkmark">✓</span> Everything in Pro, plus:</li>
+          <li><span class="checkmark">✓</span> Anki export</li>
+          <li><span class="checkmark">✓</span> Audio narration</li>
+          <li><span class="checkmark">✓</span> Offline mode</li>
+          <li><span class="checkmark">✓</span> API access</li>
+          <li><span class="checkmark">✓</span> Early access features</li>
+        </ul>
+        <a href="/login" class="cta cta-outlined">Start 7-day free trial</a>
       </div>
     </div>
 
-    <!-- FAQ -->
+    <!-- FAQ Section -->
     <section class="faq">
       <h2>Frequently Asked Questions</h2>
 
-      <details>
+      <details class="faq-item">
+        <summary>Is there really a free plan?</summary>
+        <p>Yes! Our free plan is truly free forever. You get 3 stories, 50 vocabulary words, and 20 reviews per day. Perfect for getting started with your learning journey.</p>
+      </details>
+
+      <details class="faq-item">
         <summary>Can I cancel anytime?</summary>
-        <p>Yes, absolutely. You can cancel your subscription at any time — no questions asked.</p>
+        <p>Absolutely. You can cancel your subscription at any time with no questions asked. No contracts, no hidden fees. Your subscription will remain active through the end of your billing period.</p>
       </details>
 
-      <details>
-        <summary>What happens to my words if I downgrade?</summary>
-        <p>
-          Your words are always yours. If you downgrade from Pro to Free, words
-          over the 50-word limit become read-only. You won't lose them — you
-          just won't be able to add new ones until you're back under the limit
-          or upgrade again.
-        </p>
-      </details>
-
-      <details>
-        <summary>Is there a free trial?</summary>
-        <p>Yes! Every new account gets 7 days of Pro features, no credit card required.</p>
-      </details>
-
-      <details>
+      <details class="faq-item">
         <summary>What payment methods do you accept?</summary>
-        <p>We accept all major credit cards (Visa, Mastercard, American Express) via Stripe.</p>
+        <p>We accept all major credit cards (Visa, Mastercard, American Express) and payments are processed securely through Stripe. We don't store your card information on our servers.</p>
       </details>
 
-      <details>
-        <summary>Do you offer refunds?</summary>
-        <p>
-          If you're not satisfied within the first 14 days of a paid subscription,
-          contact us and we'll issue a full refund.
-        </p>
+      <details class="faq-item">
+        <summary>Do you offer student discounts?</summary>
+        <p>We'd love to help students access LongLore! Please contact our support team at support@longlore.com with proof of enrollment, and we'll see what we can do for you.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>What happens to my data if I downgrade?</summary>
+        <p>Your data is always yours. If you downgrade from a paid plan to Free, all your progress and vocabulary are preserved. Features are simply limited to the Free plan's capabilities — no data is lost.</p>
       </details>
     </section>
 
-    <div class="trust-strip">
-      🔒 Secure payment via Stripe · 7-day free trial · Cancel anytime
+    <!-- Bottom CTA -->
+    <div class="bottom-cta">
+      <p>Still deciding? <strong>Start with Free</strong> — no credit card needed.</p>
     </div>
   </div>
 </BaseLayout>
+
+<script is:inline>
+  // Toggle between monthly and annual pricing
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtns = document.querySelectorAll('.toggle-btn');
+    const priceGroups = document.querySelectorAll('[data-period-group]');
+
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Update active button
+        toggleBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Get selected period
+        const period = btn.dataset.period;
+
+        // Update all price groups
+        priceGroups.forEach(group => {
+          const monthlyPrice = group.querySelector('.price-monthly');
+          const annualPrice = group.querySelector('.price-annual');
+
+          if (period === 'monthly') {
+            if (monthlyPrice) monthlyPrice.setAttribute('data-visible', 'true');
+            if (annualPrice) annualPrice.setAttribute('data-visible', 'false');
+          } else {
+            if (monthlyPrice) monthlyPrice.setAttribute('data-visible', 'false');
+            if (annualPrice) annualPrice.setAttribute('data-visible', 'true');
+          }
+        });
+      });
+    });
+  });
+</script>
 
 <style>
   .pricing-page {
@@ -107,50 +176,127 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     color: var(--color-text-primary);
   }
 
-  h1 {
-    font-family: var(--font-display-en);
-    font-size: var(--text-h1);
+  /* Header */
+  .pricing-header {
     text-align: center;
-    margin-bottom: var(--space-2xl);
+    margin-bottom: var(--space-3xl);
   }
 
-  /* Cards */
+  .pricing-header h1 {
+    font-family: var(--font-display-en);
+    font-size: var(--text-h1);
+    margin-bottom: var(--space-sm);
+  }
+
+  .header-cn {
+    font-size: var(--text-h3);
+    color: var(--color-jade);
+    margin-bottom: var(--space-md);
+    font-weight: 600;
+  }
+
+  .header-subtitle {
+    font-size: var(--text-body);
+    color: var(--color-text-secondary);
+  }
+
+  /* Toggle */
+  .toggle-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--space-3xl);
+  }
+
+  .toggle-group {
+    display: flex;
+    gap: 0;
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xs);
+    border: 1px solid var(--color-surface);
+  }
+
+  .toggle-btn {
+    flex: 1;
+    padding: var(--space-sm) var(--space-lg);
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    font-size: var(--text-body);
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: all var(--duration-fast) var(--ease-default);
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .toggle-btn.active {
+    background: var(--color-elevated);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .save-badge {
+    display: inline-block;
+    margin-left: var(--space-xs);
+    font-size: 0.75em;
+    background: var(--color-jade);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-weight: 700;
+  }
+
+  /* Cards Grid */
   .cards {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--space-lg);
     margin-bottom: var(--space-3xl);
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 768px) {
     .cards {
       grid-template-columns: 1fr;
     }
   }
 
   .card {
-    background: var(--color-elevated);
-    border-radius: 16px;
-    box-shadow: var(--shadow-sm);
-    padding: var(--space-xl);
+    background: var(--color-surface);
+    border: 1px solid var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
     display: flex;
     flex-direction: column;
     position: relative;
+    transition: transform var(--duration-fast) var(--ease-default), 
+                box-shadow var(--duration-fast) var(--ease-default);
   }
 
-  .card-pro {
-    box-shadow: var(--shadow-md);
+  .card-featured {
+    background: var(--color-elevated);
     border-top: 3px solid var(--color-jade);
+    transform: scale(1.02);
+    box-shadow: var(--shadow-md);
+  }
+
+  .card-featured:hover {
+    transform: scale(1.02);
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
   }
 
   .badge {
     position: absolute;
-    top: calc(-0.75em);
+    top: calc(var(--space-lg) * -1);
     right: var(--space-lg);
     background: var(--color-jade);
     color: #fff;
     font-size: var(--text-small);
-    font-weight: 600;
+    font-weight: 700;
     padding: var(--space-xs) var(--space-md);
     border-radius: var(--radius-full);
   }
@@ -161,55 +307,75 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 
   .tier {
     font-size: var(--text-h3);
-    font-weight: 600;
+    font-weight: 700;
     display: block;
-    margin-bottom: var(--space-sm);
+    font-family: var(--font-display-en);
+  }
+
+  .tier-cn {
+    font-size: var(--text-body);
+    color: var(--color-text-secondary);
+    display: block;
+    font-weight: 500;
+  }
+
+  .price {
+    margin-top: var(--space-sm);
+  }
+
+  .price-monthly,
+  .price-annual {
+    transition: opacity var(--duration-fast) var(--ease-default);
+  }
+
+  .price-monthly[data-visible="false"],
+  .price-annual[data-visible="false"] {
+    display: none;
   }
 
   .amount {
     font-family: var(--font-display-en);
-    font-size: var(--text-hero);
+    font-size: 2.5rem;
     font-weight: 700;
     line-height: 1;
+    color: var(--color-text-primary);
+    display: block;
   }
 
   .period {
-    font-size: var(--text-body);
+    font-size: var(--text-small);
     color: var(--color-text-secondary);
+    display: block;
+    margin-top: var(--space-xs);
   }
 
-  .price-annual {
+  .save-label {
+    display: inline-block;
     margin-top: var(--space-xs);
     font-size: var(--text-small);
-    color: var(--color-text-secondary);
-  }
-
-  .annual-price {
-    font-weight: 600;
-    color: var(--color-text-primary);
-  }
-
-  .monthly-equiv s {
-    color: var(--color-text-secondary);
-  }
-
-  .includes {
-    font-size: var(--text-small);
-    font-weight: 600;
-    margin-bottom: var(--space-sm);
-    color: var(--color-text-secondary);
+    color: var(--color-jade);
+    font-weight: 700;
   }
 
   .features {
     list-style: none;
     padding: 0;
-    margin: 0 0 var(--space-xl);
+    margin: 0 0 var(--space-lg);
     flex: 1;
   }
 
   .features li {
-    padding: var(--space-xs) 0;
-    font-size: var(--text-body);
+    font-size: 14px;
+    line-height: 2;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .checkmark {
+    color: var(--color-jade);
+    font-weight: 700;
   }
 
   /* CTAs */
@@ -221,11 +387,9 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     font-weight: 600;
     font-size: var(--text-body);
     text-decoration: none;
-    transition: opacity var(--duration-fast) var(--ease-default);
-  }
-
-  .cta:hover {
-    opacity: 0.85;
+    border: 2px solid transparent;
+    transition: all var(--duration-fast) var(--ease-default);
+    cursor: pointer;
   }
 
   .cta-outlined {
@@ -234,10 +398,20 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     background: transparent;
   }
 
+  .cta-outlined:hover {
+    background: var(--color-jade);
+    color: #fff;
+  }
+
   .cta-solid {
     background: var(--color-jade);
     color: #fff;
     border: 2px solid var(--color-jade);
+  }
+
+  .cta-solid:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
   }
 
   /* FAQ */
@@ -247,14 +421,19 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
   }
 
   .faq h2 {
+    font-family: var(--font-display-en);
     font-size: var(--text-h2);
     text-align: center;
-    margin-bottom: var(--space-lg);
+    margin-bottom: var(--space-2xl);
   }
 
-  details {
+  .faq-item {
     border-bottom: 1px solid var(--color-surface);
     padding: var(--space-md) 0;
+  }
+
+  .faq-item:last-child {
+    border-bottom: none;
   }
 
   summary {
@@ -265,6 +444,13 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: var(--space-md);
+    color: var(--color-text-primary);
+    transition: color var(--duration-fast) var(--ease-default);
+  }
+
+  summary:hover {
+    color: var(--color-jade);
   }
 
   summary::-webkit-details-marker {
@@ -274,25 +460,47 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
   summary::after {
     content: '+';
     font-size: var(--text-h3);
-    color: var(--color-text-secondary);
+    color: var(--color-jade);
     transition: transform var(--duration-fast) var(--ease-default);
+    flex-shrink: 0;
   }
 
-  details[open] summary::after {
+  .faq-item[open] summary::after {
     content: '−';
   }
 
-  details p {
+  .faq-item p {
     margin-top: var(--space-sm);
     color: var(--color-text-secondary);
     line-height: 1.6;
   }
 
-  /* Trust strip */
-  .trust-strip {
+  /* Bottom CTA */
+  .bottom-cta {
     text-align: center;
-    font-size: var(--text-small);
-    color: var(--color-text-secondary);
-    padding: var(--space-lg) 0 var(--space-xl);
+    padding: var(--space-2xl) var(--space-lg);
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    font-size: var(--text-body);
+    color: var(--color-text-primary);
+  }
+
+  .bottom-cta strong {
+    color: var(--color-jade);
+    font-weight: 700;
+  }
+
+  @media (max-width: 640px) {
+    .pricing-header h1 {
+      font-size: var(--text-h2);
+    }
+
+    .cards {
+      grid-template-columns: 1fr;
+    }
+
+    .card-featured {
+      transform: scale(1);
+    }
   }
 </style>

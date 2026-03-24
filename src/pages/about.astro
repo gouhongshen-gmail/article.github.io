@@ -3,83 +3,391 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="About" description="LongLore helps you learn Chinese through compelling historical stories, with sentence-by-sentence translations, pinyin, and spaced repetition.">
-  <div class="prose">
-    <h1>About LongLore 龙知</h1>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h1>About LongLore 龙知</h1>
+      <p class="hero-subtitle">Learning Chinese through the stories that shaped a civilization</p>
+    </div>
+  </section>
 
-    <p>
-      LongLore helps people learn Chinese through compelling historical stories.
-      Instead of boring textbook dialogues, we use real stories from Chinese
-      history — the Grand Canal, the Mandate of Heaven, the Three Kingdoms, and
-      more.
-    </p>
-    <p>
-      Each story comes with sentence-by-sentence translations, pinyin
-      pronunciation guides, and vocabulary glosses. Our spaced repetition system
-      ensures you actually remember what you learn.
-    </p>
+  <!-- Mission Statement -->
+  <section class="mission">
+    <div class="container">
+      <p class="mission-statement">We believe the best way to learn Chinese is through the stories that shaped it.</p>
+      
+      <div class="mission-content">
+        <p>
+          Most language apps are soulless. You tap icons, memorize isolated words, and wonder why it's all so forgettable. That's because humans don't learn language from sterile drills—we learn it from <em>stories</em>. From narratives that matter, that grip us, that we actually want to remember.
+        </p>
+        <p>
+          LongLore is built on a simple premise: Chinese is best learned through the compelling historical stories that shaped the language. Instead of contrived dialogues about buying train tickets, you'll read about Zhuge Liang's strategies, the construction of the Great Wall, the poetry that moved dynasties, and the philosophers whose ideas still resonate today.
+        </p>
+        <p>
+          When you learn words in the context of real stories, they stick. They become part of your knowledge, not just another flashcard forgotten by tomorrow. This is how languages are truly learned—through meaning, through context, through the human experience embedded in every text.
+        </p>
+      </div>
+    </div>
+  </section>
 
-    <h2>How It Works</h2>
-    <p>
-      Learning with LongLore follows a simple cycle:
-    </p>
-    <ol>
-      <li>
-        <strong>Read</strong> — Immerse yourself in a story from Chinese history.
-        Tap any sentence for its translation, pinyin, and word-by-word glosses.
-      </li>
-      <li>
-        <strong>Discover</strong> — Save new words to your personal vocabulary as
-        you encounter them naturally in context.
-      </li>
-      <li>
-        <strong>Remember</strong> — Our spaced repetition system schedules
-        reviews at the optimal time so new words move into long-term memory.
-      </li>
-    </ol>
+  <!-- How It Works Section -->
+  <section class="how-it-works">
+    <div class="container">
+      <h2>How It Works</h2>
+      <div class="steps">
+        <div class="step-card">
+          <div class="icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 8H40V40H8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M12 16H36M12 24H36M12 32H36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>Read Authentic Stories</h3>
+          <p>Immerse yourself in bilingual historical narratives from Chinese history. Each story is carefully selected for both linguistic richness and cultural significance.</p>
+        </div>
 
-    <h2>Our Philosophy</h2>
-    <p>
-      We believe learning should be interesting, not tedious. Textbooks fill
-      pages with contrived dialogues about buying train tickets. We'd rather you
-      read about Zhuge Liang's strategies or the construction of the Great Wall.
-    </p>
-    <p>
-      Real content. Real history. Real Chinese. That's the LongLore way.
-    </p>
-  </div>
+        <div class="step-card">
+          <div class="icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="2"/>
+              <path d="M24 16V24L30 30" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>Learn Words in Context</h3>
+          <p>Tap any word for instant definitions, pronunciation, and usage examples. Our spaced repetition system gently introduces new vocabulary right when you need it.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 24L20 35L39 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3>Remember with Spaced Repetition</h3>
+          <p>Our SM-2 algorithm schedules reviews at the optimal time, ensuring new words move into long-term memory. Review sessions are concise and focused.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team Section -->
+  <section class="team">
+    <div class="container">
+      <h2>The Team</h2>
+      <p>
+        LongLore is built by a small team passionate about Chinese language and history. We believe that learning should be engaging, meaningful, and effective. Every feature is designed with learners like you in mind.
+      </p>
+    </div>
+  </section>
+
+  <!-- Technology Section -->
+  <section class="tech">
+    <div class="container">
+      <h2>Our Technology</h2>
+      <p>
+        Built with <strong>Astro</strong>, <strong>Svelte</strong>, and <strong>Cloudflare Workers</strong> for speed and reliability. We're committed to creating a fast, responsive learning experience that works seamlessly across all devices.
+      </p>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta">
+    <div class="container">
+      <h2>Ready to Start Learning?</h2>
+      <p>Join learners discovering Chinese through the stories that shaped it.</p>
+      <a href="/stories" class="cta-button">Explore Stories</a>
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
-  .prose {
-    max-width: 680px;
+  .container {
+    max-width: 720px;
     margin: 0 auto;
-    padding: var(--space-xl) var(--space-lg);
-    line-height: 1.7;
+    padding: 48px 24px;
+  }
+
+  /* Hero Section */
+  .hero {
+    background: linear-gradient(135deg, rgba(109, 173, 145, 0.1) 0%, rgba(74, 137, 122, 0.05) 100%);
+    padding: 96px 24px;
+    text-align: center;
+    border-bottom: 1px solid rgba(109, 173, 145, 0.1);
+  }
+
+  .hero .container {
+    padding: 0 24px;
+  }
+
+  .hero h1 {
+    font-family: var(--font-display-en);
+    font-size: 2rem;
+    margin-bottom: 16px;
     color: var(--color-text-primary);
   }
-  .prose h1 {
+
+  .hero-subtitle {
+    font-size: 1.125rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* Mission Section */
+  .mission {
+    padding: 64px 24px;
+  }
+
+  .mission .container {
+    padding: 0 24px;
+  }
+
+  .mission-statement {
     font-family: var(--font-display-en);
-    font-size: var(--text-h1);
-    margin-bottom: var(--space-lg);
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 48px;
+    color: var(--color-text-primary);
+    line-height: 1.5;
   }
-  .prose h2 {
-    font-size: var(--text-h2);
-    margin-top: var(--space-2xl);
-    margin-bottom: var(--space-md);
+
+  .mission-content {
+    max-width: 720px;
   }
-  .prose p {
-    margin-bottom: var(--space-md);
+
+  .mission-content p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+    margin-bottom: 24px;
   }
-  .prose ul,
-  .prose ol {
-    margin-bottom: var(--space-md);
-    padding-left: var(--space-lg);
-  }
-  .prose li {
-    margin-bottom: var(--space-sm);
-  }
-  .prose a {
+
+  .mission-content em {
+    font-style: italic;
     color: var(--color-jade);
-    text-decoration: underline;
+  }
+
+  /* How It Works Section */
+  .how-it-works {
+    padding: 64px 24px;
+    background: rgba(109, 173, 145, 0.03);
+  }
+
+  .how-it-works .container {
+    padding: 0 24px;
+  }
+
+  .how-it-works h2 {
+    font-family: var(--font-display-en);
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 48px;
+    color: var(--color-text-primary);
+  }
+
+  .steps {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .step-card {
+    flex: 1;
+    min-width: 280px;
+    max-width: 300px;
+    background: var(--color-surface);
+    border: 1px solid rgba(109, 173, 145, 0.2);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .step-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(109, 173, 145, 0.1);
+  }
+
+  .step-card .icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 16px;
+    color: var(--color-jade);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .step-card .icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .step-card h3 {
+    font-family: var(--font-display-en);
+    font-size: 1rem;
+    margin-bottom: 12px;
+    color: var(--color-text-primary);
+  }
+
+  .step-card p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* Team Section */
+  .team {
+    padding: 64px 24px;
+  }
+
+  .team .container {
+    padding: 0 24px;
+  }
+
+  .team h2 {
+    font-family: var(--font-display-en);
+    font-size: 1.5rem;
+    margin-bottom: 24px;
+    color: var(--color-text-primary);
+  }
+
+  .team p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+  }
+
+  /* Technology Section */
+  .tech {
+    padding: 64px 24px;
+    background: rgba(109, 173, 145, 0.03);
+  }
+
+  .tech .container {
+    padding: 0 24px;
+  }
+
+  .tech h2 {
+    font-family: var(--font-display-en);
+    font-size: 1.5rem;
+    margin-bottom: 24px;
+    color: var(--color-text-primary);
+  }
+
+  .tech p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+  }
+
+  .tech strong {
+    color: var(--color-jade);
+  }
+
+  /* CTA Section */
+  .cta {
+    padding: 64px 24px;
+    text-align: center;
+  }
+
+  .cta .container {
+    padding: 0 24px;
+  }
+
+  .cta h2 {
+    font-family: var(--font-display-en);
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+    color: var(--color-text-primary);
+  }
+
+  .cta p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+    margin-bottom: 32px;
+  }
+
+  .cta-button {
+    display: inline-block;
+    background: var(--color-jade);
+    color: white;
+    padding: 12px 32px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.3s ease, transform 0.2s ease;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+  }
+
+  .cta-button:hover {
+    background: var(--color-jade-dark, #5a9785);
+    transform: translateY(-2px);
+  }
+
+  .cta-button:active {
+    transform: translateY(0);
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .hero {
+      padding: 64px 24px;
+    }
+
+    .hero h1 {
+      font-size: 1.75rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1rem;
+    }
+
+    .mission {
+      padding: 48px 24px;
+    }
+
+    .mission-statement {
+      font-size: 1.25rem;
+      margin-bottom: 32px;
+    }
+
+    .how-it-works {
+      padding: 48px 24px;
+    }
+
+    .how-it-works h2 {
+      font-size: 1.25rem;
+      margin-bottom: 32px;
+    }
+
+    .steps {
+      gap: 16px;
+    }
+
+    .step-card {
+      min-width: 100%;
+      max-width: none;
+    }
+
+    .team {
+      padding: 48px 24px;
+    }
+
+    .tech {
+      padding: 48px 24px;
+    }
+
+    .cta {
+      padding: 48px 24px;
+    }
+
+    .cta h2 {
+      font-size: 1.25rem;
+    }
   }
 </style>

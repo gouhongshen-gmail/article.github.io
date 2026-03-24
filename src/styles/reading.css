@@ -49,13 +49,52 @@
 
 /* --------------------------------------------------------------------------
    Bilingual Lesson Block (.cnlesson)
-   Layout: ZH paragraph followed by EN paragraph
+   Layout: ZH paragraph followed by EN paragraph, with pinyin support
    -------------------------------------------------------------------------- */
 .cnlesson {
   margin-block: var(--space-xl);
   padding: var(--space-lg);
   background-color: var(--color-surface);
   border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.cnlesson-pair {
+  margin-bottom: var(--space-lg);
+}
+
+.cnlesson-pair:last-child {
+  margin-bottom: 0;
+}
+
+.cnlesson-zh {
+  font-family: var(--font-display-cn);
+  font-size: 1.2em;
+  line-height: var(--lh-body-cjk);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+  letter-spacing: 0.02em;
+}
+
+.cnlesson-en {
+  font-family: var(--font-body-en);
+  font-size: var(--text-small);
+  line-height: var(--lh-body);
+  color: var(--color-text-secondary);
+  transition: opacity 0.3s ease, max-height 0.3s ease;
+  overflow: hidden;
+}
+
+/* Translation visibility: hide/show via data attribute */
+[data-translations="hidden"] .cnlesson-en {
+  opacity: 0;
+  max-height: 0;
+  margin: 0;
+}
+
+[data-translations="visible"] .cnlesson-en {
+  opacity: 1;
+  max-height: 200px;
 }
 
 .cnlesson p:lang(zh),
@@ -77,6 +116,71 @@
 
 .cnlesson + .cnlesson {
   margin-top: var(--space-md);
+}
+
+/* Level-dependent Chinese text sizing */
+[data-difficulty="beginner"] .cnlesson-zh {
+  font-size: 1.4em;
+  letter-spacing: 0.04em;
+  line-height: 2;
+}
+
+[data-difficulty="intermediate"] .cnlesson-zh {
+  font-size: 1.25em;
+  letter-spacing: 0.02em;
+  line-height: 1.9;
+}
+
+[data-difficulty="advanced"] .cnlesson-zh {
+  font-size: 1.15em;
+  letter-spacing: 0.01em;
+  line-height: 1.8;
+}
+
+/* --------------------------------------------------------------------------
+   Pinyin Display (via data-pinyin attribute on .story-content)
+   Uses CSS ::after on vocab-token to show pinyin above the character
+   -------------------------------------------------------------------------- */
+.story-content .vocab-token[data-pinyin]::before {
+  content: attr(data-pinyin);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-family: var(--font-body-en);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.story-content .vocab-token[data-pinyin] {
+  position: relative;
+}
+
+/* Show pinyin when data-pinyin="visible" is set on .story-content */
+[data-pinyin="visible"] .vocab-token[data-pinyin]::before {
+  opacity: 1;
+}
+
+/* Always show pinyin on hover/focus regardless of mode */
+.vocab-token[data-pinyin]:hover::before,
+.vocab-token[data-pinyin]:focus::before {
+  opacity: 1;
+}
+
+/* Extra line-height when pinyin is visible to prevent overlap */
+[data-pinyin="visible"] .cnlesson-zh {
+  line-height: 2.4;
+}
+
+/* --------------------------------------------------------------------------
+   Custom font size override via ReadingToolbar
+   -------------------------------------------------------------------------- */
+.story-content {
+  font-size: var(--reading-font-size, var(--text-body));
 }
 
 /* --------------------------------------------------------------------------

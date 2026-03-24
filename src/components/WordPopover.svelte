@@ -1,4 +1,6 @@
 <script>
+  import { saveWord, isWordSaved } from '@lib/vocab-store';
+
   /** @type {{ hanzi: string; pinyin: string; gloss: string } | null} */
   let word = $state(null);
   /** @type {HTMLElement | null} */
@@ -6,6 +8,8 @@
   let isMobile = $state(false);
   let visible = $state(false);
   let popoverStyle = $state('');
+  let saving = $state(false);
+  let saved = $state(false);
 
   function updateMediaQuery() {
     isMobile = window.innerWidth < 1024;
@@ -46,6 +50,12 @@
         gloss: token.dataset.gloss ?? '',
       };
 
+      // Check if already saved
+      saved = false;
+      isWordSaved(word.hanzi, window.location.pathname.split('/').filter(Boolean).pop() || 'unknown')
+        .then(isSaved => { saved = isSaved; })
+        .catch(() => {});
+
       if (!isMobile) positionPopover(token);
       visible = true;
     } else if (!e.target.closest('.word-popover') && !e.target.closest('.word-sheet')) {
@@ -66,10 +76,28 @@
     word = null;
   }
 
-  function handleSave() {
-    if (word) {
-      console.log('添加到词库:', word);
-      alert(`已添加「${word.hanzi}」到词库`);
+  async function handleSave() {
+    if (!word || saving || saved) return;
+    saving = true;
+    try {
+      await saveWord({
+        hanzi: word.hanzi,
+        pinyin: word.pinyin,
+        gloss: word.gloss,
+        storyId: window.location.pathname.split('/').filter(Boolean).pop() || 'unknown',
+        storyTitle: document.title.split('|')[0]?.trim() || '',
+        sentenceZh: activeEl?.closest('.cnlesson-pair')?.querySelector('.cnlesson-zh')?.textContent || '',
+        sentenceEn: activeEl?.closest('.cnlesson-pair')?.querySelector('.cnlesson-en')?.textContent || '',
+      });
+      saved = true;
+      // Mark the token as saved in the DOM
+      if (activeEl) activeEl.setAttribute('data-saved', 'true');
+      // Reset after brief feedback
+      setTimeout(() => { saved = false; }, 2000);
+    } catch (e) {
+      console.error('Failed to save word:', e);
+    } finally {
+      saving = false;
     }
   }
 
@@ -100,7 +128,15 @@
         <p class="word-hanzi">{word.hanzi}</p>
         <p class="word-pinyin">{word.pinyin}</p>
         <p class="word-gloss">{word.gloss}</p>
-        <button class="save-btn" onclick={handleSave}>添加到词库</button>
+        <button class="save-btn" disabled={saving || saved} onclick={handleSave}>
+          {#if saving}
+            保存中...
+          {:else if saved}
+            ✓ 已添加
+          {:else}
+            添加到词库
+          {/if}
+        </button>
       </div>
     </div>
   {:else}
@@ -109,7 +145,15 @@
       <p class="word-hanzi">{word.hanzi}</p>
       <p class="word-pinyin">{word.pinyin}</p>
       <p class="word-gloss">{word.gloss}</p>
-      <button class="save-btn" onclick={handleSave}>添加到词库</button>
+      <button class="save-btn" disabled={saving || saved} onclick={handleSave}>
+        {#if saving}
+          保存中...
+        {:else if saved}
+          ✓ 已添加
+        {:else}
+          添加到词库
+        {/if}
+      </button>
     </div>
   {/if}
 {/if}
@@ -223,7 +267,12 @@
     transition: opacity var(--duration-fast, 150ms) ease;
   }
 
-  .save-btn:hover {
+  .save-btn:hover:not(:disabled) {
     opacity: 0.9;
+  }
+
+  .save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 </style>

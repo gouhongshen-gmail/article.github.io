@@ -1,7 +1,10 @@
 <script lang="ts">
-  import { gradeCard, previewIntervals, type VocabCard } from '@lib/srs-engine';
+  import { onMount } from 'svelte';
+  import { gradeCard, previewIntervals, formatInterval, type VocabCard as SrsCard } from '@lib/srs-engine';
+  import { getDueCards, updateCard, addReviewLog, type VocabCard } from '@lib/vocab-store';
 
-  const demoCards: VocabCard[] = [
+  // Demo cards as fallback
+  const demoCards: SrsCard[] = [
     { id: '1', hanzi: '大运河', pinyin: 'Dà Yùn Hé', english: 'the Grand Canal', easeFactor: 2.5, interval: 0, repetitions: 0, nextReview: new Date(0).toISOString(), stage: 'new', createdAt: '', updatedAt: '' },
     { id: '2', hanzi: '朝廷', pinyin: 'cháo tíng', english: 'imperial court', easeFactor: 2.5, interval: 0, repetitions: 0, nextReview: new Date(0).toISOString(), stage: 'new', createdAt: '', updatedAt: '' },
     { id: '3', hanzi: '连接', pinyin: 'lián jiē', english: 'to connect; to link', easeFactor: 2.5, interval: 0, repetitions: 0, nextReview: new Date(0).toISOString(), stage: 'new', createdAt: '', updatedAt: '' },
@@ -12,12 +15,26 @@
     { id: '8', hanzi: '扩建', pinyin: 'kuò jiàn', english: 'to expand; to extend', easeFactor: 2.5, interval: 0, repetitions: 0, nextReview: new Date(0).toISOString(), stage: 'new', createdAt: '', updatedAt: '' },
   ];
 
-  let cards = $state<VocabCard[]>([...demoCards]);
+  // Convert vocab store card to SRS card format
+  function convertCard(card: VocabCard): SrsCard {
+    return {
+      ...card,
+      english: card.gloss,
+      createdAt: new Date(card.createdAt).toISOString(),
+      updatedAt: new Date(card.updatedAt).toISOString(),
+      nextReview: new Date(card.nextReview).toISOString(),
+    };
+  }
+
+  let cards = $state<SrsCard[]>([...demoCards]);
   let currentIndex = $state(0);
   let flipped = $state(false);
   let sliding = $state<'none' | 'out' | 'in'>('none');
   let correctCount = $state(0);
   let totalReviewed = $state(0);
+  let loading = $state(true);
+  let isDemoMode = $state(false);
+  let originalCards = $state<VocabCard[]>([]); // Store original cards for persistence
 
   let currentCard = $derived(cards[currentIndex]);
   let isComplete = $derived(currentIndex >= cards.length);
@@ -25,14 +42,74 @@
   let intervalPreviews = $derived(currentCard ? previewIntervals(currentCard) : {});
   let accuracy = $derived(totalReviewed > 0 ? Math.round((correctCount / totalReviewed) * 100) : 0);
 
+  onMount(async () => {
+    try {
+      // Try to load due cards from IndexedDB
+      const dbCards = await getDueCards(20);
+      
+      if (dbCards.length > 0) {
+        // Use real cards from database
+        originalCards = dbCards;
+        cards = dbCards.map(convertCard);
+        isDemoMode = false;
+      } else {
+        // Fall back to demo mode
+        isDemoMode = true;
+        cards = demoCards.map(c => ({ ...c }));
+      }
+    } catch (err) {
+      // On error, use demo mode
+      console.error('Failed to load due cards:', err);
+      isDemoMode = true;
+      cards = demoCards.map(c => ({ ...c }));
+    } finally {
+      loading = false;
+    }
+  });
+
   function flipCard() {
     if (!flipped && !isComplete) flipped = true;
   }
 
-  function score(quality: number) {
+  async function score(quality: number) {
     if (!currentCard) return;
+
+    const cardBefore = currentCard;
     const updated = gradeCard(currentCard, quality);
     cards[currentIndex] = updated;
+
+    // Update IndexedDB if not in demo mode
+    if (!isDemoMode && originalCards[currentIndex]) {
+      const originalCard = originalCards[currentIndex];
+      const updatedDbCard: VocabCard = {
+        ...originalCard,
+        easeFactor: updated.easeFactor,
+        interval: updated.interval,
+        repetitions: updated.repetitions,
+        nextReview: new Date(updated.nextReview).getTime(),
+        stage: updated.stage,
+        updatedAt: Date.now(),
+      };
+
+      try {
+        // Persist to IndexedDB
+        await updateCard(updatedDbCard);
+        
+        // Log the review
+        await addReviewLog({
+          cardId: originalCard.id,
+          quality,
+          intervalBefore: cardBefore.interval,
+          intervalAfter: updated.interval,
+          easeBefore: cardBefore.easeFactor,
+          easeAfter: updated.easeFactor,
+          reviewedAt: Date.now(),
+        });
+      } catch (err) {
+        console.error('Failed to persist review:', err);
+      }
+    }
+
     if (quality >= 3) correctCount++;
     totalReviewed++;
 
@@ -46,13 +123,31 @@
     }, 200);
   }
 
-  function restart() {
-    cards = demoCards.map(c => ({ ...c }));
+  async function restart() {
+    loading = true;
     currentIndex = 0;
     flipped = false;
     sliding = 'none';
     correctCount = 0;
     totalReviewed = 0;
+
+    try {
+      const dbCards = await getDueCards(20);
+      if (dbCards.length > 0) {
+        originalCards = dbCards;
+        cards = dbCards.map(convertCard);
+        isDemoMode = false;
+      } else {
+        isDemoMode = true;
+        cards = demoCards.map(c => ({ ...c }));
+      }
+    } catch (err) {
+      console.error('Failed to reload cards:', err);
+      isDemoMode = true;
+      cards = demoCards.map(c => ({ ...c }));
+    } finally {
+      loading = false;
+    }
   }
 
   const buttons = [
@@ -64,12 +159,21 @@
 </script>
 
 <div class="srs-container">
-  {#if isComplete}
+  {#if loading}
+    <!-- Loading State -->
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p class="loading-text">Loading review cards...</p>
+    </div>
+  {:else if isComplete}
     <div class="complete-card">
       <div class="complete-bar" style="background: var(--color-jade);"></div>
       <div class="complete-icon">🎉</div>
       <h2>复习完成！</h2>
       <p class="complete-sub">Session Complete</p>
+      {#if isDemoMode}
+        <div class="demo-banner">Demo mode — save words from stories to start real reviews</div>
+      {/if}
       <div class="complete-stats">
         <div class="stat">
           <span class="stat-num">{totalReviewed}</span>
@@ -82,10 +186,15 @@
       </div>
       <div class="complete-actions">
         <button class="btn-primary" onclick={restart}>再来一轮</button>
-        <a href="/stories" class="btn-link">继续学习 →</a>
+        <a href="/dashboard" class="btn-link">Back to Dashboard →</a>
       </div>
     </div>
   {:else if currentCard}
+    <!-- Demo mode banner -->
+    {#if isDemoMode}
+      <div class="demo-banner">Demo mode — save words from stories to start real reviews</div>
+    {/if}
+
     <!-- Progress -->
     <div class="progress-row">
       <div class="progress-track">
@@ -109,8 +218,10 @@
           <span class="card-hint">tap to reveal</span>
         </div>
         <div class="card-face card-back">
-          <span class="card-pinyin">{currentCard.pinyin}</span>
-          <span class="card-english">{currentCard.english}</span>
+          <div class="card-back-content">
+            <span class="card-pinyin">{currentCard.pinyin}</span>
+            <span class="card-english">{currentCard.english}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -149,6 +260,43 @@
     flex-direction: column;
     align-items: center;
     gap: var(--space-lg, 1.5rem);
+  }
+
+  /* Loading State */
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md, 1rem);
+    padding: var(--space-2xl, 3rem) var(--space-lg, 1.5rem);
+  }
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--color-border-subtle, #d6d1c7);
+    border-top-color: var(--color-jade, #2d8a72);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .loading-text {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary, #57534e);
+  }
+
+  /* Demo Banner */
+  .demo-banner {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #92400e;
+    text-align: center;
   }
 
   /* Progress */
@@ -226,6 +374,14 @@
     transform: rotateY(180deg);
   }
 
+  .card-back-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md, 1rem);
+    align-items: center;
+    justify-content: center;
+  }
+
   .card-prompt {
     font-size: 0.8rem;
     color: var(--color-text-secondary, #57534e);
@@ -269,6 +425,7 @@
     cursor: pointer;
     font-family: inherit;
     transition: transform 120ms ease;
+    white-space: pre-wrap;
   }
   .score-btn:active {
     transform: scale(0.96);
@@ -285,6 +442,7 @@
     font-size: 0.65rem;
     opacity: 0.5;
     margin-top: 2px;
+    line-height: 1.2;
   }
 
   /* Complete Card */

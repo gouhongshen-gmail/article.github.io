@@ -135,16 +135,32 @@ body,
 /* --------------------------------------------------------------------------
    Vocabulary Token (shared primitive)
    -------------------------------------------------------------------------- */
+/* Vocabulary tokens — dotted underline for unsaved, solid for saved */
 .vocab-token {
-  text-decoration: underline;
-  text-decoration-color: var(--color-jade);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
-  text-decoration-skip-ink: none;
+  border-bottom: 1.5px dotted rgba(45, 138, 114, 0.4);
   cursor: pointer;
-  transition: text-decoration-color var(--duration-fast) var(--ease-default);
+  padding-bottom: 1px;
+  transition: border-color var(--duration-fast) var(--ease-default),
+    background-color var(--duration-fast) var(--ease-default);
 }
 
-.vocab-token:hover {
-  text-decoration-color: var(--color-brand);
+.vocab-token:hover,
+.vocab-token:focus-visible {
+  border-bottom-color: var(--color-jade);
+  border-bottom-style: solid;
+  background: rgba(45, 138, 114, 0.08);
+  border-radius: 2px;
+  outline: none;
+}
+
+/* Saved words get a solid underline */
+.vocab-token[data-saved] {
+  border-bottom: 1.5px solid var(--color-jade);
+}
+
+/* Active state when popover is open */
+.vocab-token--active {
+  background: rgba(45, 138, 114, 0.12) !important;
+  border-bottom-style: solid !important;
+  border-radius: 2px;
 }

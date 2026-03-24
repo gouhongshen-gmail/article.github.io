@@ -1,131 +1,226 @@
 <script>
-  const PREFS_KEY = 'longlore:reading-prefs';
-  const FONT_KEY = 'longlore:font-size';
+  const FONT_SIZE_KEY = 'longlore_font_size';
+  const READING_MODE_KEY = 'longlore_reading_mode';
   const FONT_MIN = 14;
   const FONT_MAX = 24;
   const FONT_STEP = 2;
   const FONT_DEFAULT = 16;
 
-  let showTranslation = $state(true);
+  // Reading modes
+  const MODES = {
+    guided: { pinyin: true, translations: true },
+    assisted: { pinyin: false, translations: true },
+    immersive: { pinyin: false, translations: false }
+  };
+
+  let showTranslations = $state(true);
+  let showPinyin = $state(true);
   let fontSize = $state(FONT_DEFAULT);
+  let readingMode = $state('guided');
+  let sepiaMode = $state(false);
 
   function loadPrefs() {
     try {
-      const raw = localStorage.getItem(PREFS_KEY);
-      if (raw) {
-        const prefs = JSON.parse(raw);
-        if (typeof prefs.showTranslation === 'boolean') showTranslation = prefs.showTranslation;
+      const savedSize = localStorage.getItem(FONT_SIZE_KEY);
+      if (savedSize) {
+        fontSize = Math.max(FONT_MIN, Math.min(FONT_MAX, Number(savedSize)));
       }
-      const savedSize = localStorage.getItem(FONT_KEY);
-      if (savedSize) fontSize = Math.max(FONT_MIN, Math.min(FONT_MAX, Number(savedSize)));
+
+      const savedMode = localStorage.getItem(READING_MODE_KEY);
+      if (savedMode && MODES[savedMode]) {
+        readingMode = savedMode;
+        const mode = MODES[readingMode];
+        showPinyin = mode.pinyin;
+        showTranslations = mode.translations;
+      }
     } catch { /* ignore */ }
   }
 
   function savePrefs() {
     try {
-      localStorage.setItem(PREFS_KEY, JSON.stringify({ showTranslation }));
-      localStorage.setItem(FONT_KEY, String(fontSize));
+      localStorage.setItem(FONT_SIZE_KEY, String(fontSize));
+      localStorage.setItem(READING_MODE_KEY, readingMode);
     } catch { /* ignore */ }
   }
 
-  function applyTranslation() {
-    document.documentElement.classList.toggle('hide-translations', !showTranslation);
-  }
-
-  function applyFontSize() {
+  function applySettings() {
     const content = document.querySelector('.story-content');
-    if (content) content.style.fontSize = `${fontSize}px`;
+    if (content) {
+      // Apply font size via CSS variable
+      content.style.setProperty('--reading-font-size', `${fontSize}px`);
+
+      // Apply translations visibility
+      content.setAttribute('data-translations', showTranslations ? 'visible' : 'hidden');
+
+      // Apply pinyin visibility
+      content.setAttribute('data-pinyin', showPinyin ? 'visible' : 'hidden');
+    }
+
+    // Apply sepia mode to root
+    if (sepiaMode) {
+      document.documentElement.setAttribute('data-reading-mode', 'sepia');
+    } else {
+      document.documentElement.removeAttribute('data-reading-mode');
+    }
   }
 
-  function toggleTranslation() {
-    showTranslation = !showTranslation;
-    applyTranslation();
+  function toggleTranslations() {
+    showTranslations = !showTranslations;
+    // If we're in a specific mode, exit to manual control
+    readingMode = null;
+    applySettings();
+    savePrefs();
+  }
+
+  function togglePinyin() {
+    showPinyin = !showPinyin;
+    // If we're in a specific mode, exit to manual control
+    readingMode = null;
+    applySettings();
+    savePrefs();
+  }
+
+  function toggleSepia() {
+    sepiaMode = !sepiaMode;
+    applySettings();
+  }
+
+  function cycleReadingMode() {
+    const modes = ['guided', 'assisted', 'immersive'];
+    const currentIndex = modes.indexOf(readingMode);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    readingMode = modes[nextIndex];
+
+    const mode = MODES[readingMode];
+    showPinyin = mode.pinyin;
+    showTranslations = mode.translations;
+
+    applySettings();
     savePrefs();
   }
 
   function decreaseFont() {
     if (fontSize <= FONT_MIN) return;
     fontSize -= FONT_STEP;
-    applyFontSize();
+    applySettings();
     savePrefs();
   }
 
   function increaseFont() {
     if (fontSize >= FONT_MAX) return;
     fontSize += FONT_STEP;
-    applyFontSize();
+    applySettings();
     savePrefs();
   }
 
+  function getModeLabel() {
+    const labels = { guided: '引导', assisted: '辅助', immersive: '沉浸' };
+    return labels[readingMode] || '模式';
+  }
+
+  // Initialize on mount
   $effect(() => {
-    loadPrefs();
-    applyTranslation();
-    applyFontSize();
+    if (typeof window !== 'undefined') {
+      loadPrefs();
+      applySettings();
+    }
   });
 </script>
 
 <div class="reading-toolbar" role="toolbar" aria-label="Reading controls">
+  <!-- Reading Mode Selector -->
   <div class="toolbar-group">
     <button
-      class="toolbar-btn translation-toggle"
-      class:active={showTranslation}
-      onclick={toggleTranslation}
-      aria-pressed={showTranslation}
-      aria-label="Toggle English translation"
+      class="toolbar-btn mode-btn"
+      class:active={readingMode}
+      onclick={cycleReadingMode}
+      title="Click to cycle through reading modes: Guided → Assisted → Immersive"
+      aria-label="Reading mode: {getModeLabel()}"
     >
-      <span class="toggle-label">翻译</span>
-      <span class="toggle-switch">
-        <span class="toggle-knob"></span>
-      </span>
+      {getModeLabel()}
     </button>
   </div>
 
   <div class="toolbar-divider"></div>
 
-  <div class="toolbar-group font-controls">
+  <!-- Translation & Pinyin Toggles -->
+  <div class="toolbar-group">
+    <button
+      class="toolbar-btn toggle-btn"
+      class:active={showTranslations}
+      onclick={toggleTranslations}
+      aria-pressed={showTranslations}
+      aria-label="Toggle English translations"
+      title="Show/hide English translations"
+    >
+      译文
+    </button>
+
+    <button
+      class="toolbar-btn toggle-btn"
+      class:active={showPinyin}
+      onclick={togglePinyin}
+      aria-pressed={showPinyin}
+      aria-label="Toggle pinyin"
+      title="Show/hide pinyin annotations"
+    >
+      拼音
+    </button>
+  </div>
+
+  <div class="toolbar-divider"></div>
+
+  <!-- Font Size Controls -->
+  <div class="toolbar-group">
     <button
       class="toolbar-btn font-btn"
       onclick={decreaseFont}
       disabled={fontSize <= FONT_MIN}
       aria-label="Decrease font size"
-    >A−</button>
+      title="Decrease font size"
+    >
+      A−
+    </button>
     <button
       class="toolbar-btn font-btn"
       onclick={increaseFont}
       disabled={fontSize >= FONT_MAX}
       aria-label="Increase font size"
-    >A+</button>
+      title="Increase font size"
+    >
+      A+
+    </button>
+  </div>
+
+  <div class="toolbar-divider"></div>
+
+  <!-- Sepia Toggle -->
+  <div class="toolbar-group">
+    <button
+      class="toolbar-btn toggle-btn"
+      class:active={sepiaMode}
+      onclick={toggleSepia}
+      aria-pressed={sepiaMode}
+      aria-label="Toggle sepia reading mode"
+      title="Toggle sepia reading mode"
+    >
+      棕褐
+    </button>
   </div>
 </div>
 
 <style>
-  /* Global: hide translations */
-  :global(.hide-translations .cnlesson-en) {
-    opacity: 0;
-    height: 0;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
-    transition: opacity var(--duration-normal, 300ms) ease,
-                height var(--duration-normal, 300ms) ease;
-  }
-
-  :global(.cnlesson-en) {
-    transition: opacity var(--duration-normal, 300ms) ease,
-                height var(--duration-normal, 300ms) ease;
-  }
-
   .reading-toolbar {
     position: fixed;
-    z-index: 90;
+    z-index: 40;
     display: flex;
     align-items: center;
-    gap: 8px;
-    background: var(--color-elevated, #fff);
-    border: 1px solid var(--color-border-subtle, #d6d1c7);
-    box-shadow: var(--shadow-md, 0 4px 12px rgba(28,25,23,0.08));
-    padding: 6px 12px;
-    border-radius: var(--radius-lg, 16px);
+    gap: 4px;
+    background: var(--color-elevated);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-md);
+    padding: 6px 8px;
+    border-radius: var(--radius-lg);
 
     /* Desktop: floating bottom-right */
     bottom: 24px;
@@ -134,13 +229,11 @@
 
   @media (max-width: 1023px) {
     .reading-toolbar {
-      bottom: 0;
-      left: 0;
-      right: 0;
-      border-radius: 0;
-      height: 48px;
-      justify-content: center;
-      padding-bottom: max(6px, env(safe-area-inset-bottom));
+      /* Mobile: sticky bottom above tab bar */
+      bottom: 72px;
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
     }
   }
 
@@ -153,71 +246,54 @@
   .toolbar-divider {
     width: 1px;
     height: 20px;
-    background: var(--color-border-subtle, #d6d1c7);
+    background: var(--color-border);
+    margin: 0 4px;
   }
 
   .toolbar-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    border: none;
+    justify-content: center;
+    height: 36px;
+    min-width: 36px;
+    border: 1px solid var(--color-border);
     background: transparent;
-    color: var(--color-text-primary, #1c1917);
+    color: var(--color-text-secondary);
     font-size: 14px;
     font-weight: 500;
-    padding: 6px 10px;
-    border-radius: var(--radius-md, 8px);
+    padding: 0 8px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: background var(--duration-fast, 150ms) ease;
+    transition: all var(--duration-fast, 150ms) ease;
     white-space: nowrap;
   }
 
   .toolbar-btn:hover:not(:disabled) {
-    background: var(--color-surface, #eae5db);
+    color: var(--color-text-primary);
+  }
+
+  .toolbar-btn.active {
+    background: var(--color-jade);
+    color: white;
+    border-color: var(--color-jade);
   }
 
   .toolbar-btn:disabled {
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 
-  /* Toggle switch */
-  .toggle-label {
-    font-family: var(--font-body-cn, sans-serif);
-  }
-
-  .toggle-switch {
-    position: relative;
-    width: 36px;
-    height: 20px;
-    background: var(--color-border-subtle, #d6d1c7);
-    border-radius: 10px;
-    transition: background var(--duration-fast, 150ms) ease;
-  }
-
-  .active .toggle-switch {
-    background: var(--color-jade, #2d8a72);
-  }
-
-  .toggle-knob {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 16px;
-    height: 16px;
-    background: #fff;
-    border-radius: 50%;
-    transition: transform var(--duration-fast, 150ms) ease;
-  }
-
-  .active .toggle-knob {
-    transform: translateX(16px);
-  }
-
-  /* Font buttons */
-  .font-btn {
-    min-width: 36px;
-    justify-content: center;
+  .mode-btn {
+    min-width: 50px;
     font-weight: 600;
+  }
+
+  .toggle-btn {
+    font-weight: 600;
+  }
+
+  .font-btn {
+    font-weight: 600;
+    font-size: 14px;
   }
 </style>

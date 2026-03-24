@@ -1,6 +1,7 @@
 ---
 import Nav from '@components/Nav.astro';
 import Footer from '@components/Footer.astro';
+import MobileTabBar from '@components/MobileTabBar.astro';
 import '@/styles/global.css';
 
 interface Props {
@@ -68,6 +69,7 @@ const ogImageURL = new URL(ogImage ?? `${basePath}images/banner.jpg`, Astro.site
       <slot />
     </main>
     <Footer />
+    <MobileTabBar currentPath={Astro.url.pathname} />
     <script is:inline define:vars={{ swURL }}>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -81,5 +83,12 @@ const ogImageURL = new URL(ogImage ?? `${basePath}images/banner.jpg`, Astro.site
 <style>
   main {
     min-height: calc(100vh - 56px - 200px);
+  }
+
+  /* Add bottom padding on mobile to avoid tab bar overlap */
+  @media (max-width: 767px) {
+    main {
+      padding-bottom: 64px;
+    }
   }
 </style>

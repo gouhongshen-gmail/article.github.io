@@ -1,4 +1,7 @@
 <script>
+  // Demo mode toggle — set to true for empty state, false for returning user
+  let isNewUser = $state(false);
+
   // Demo data — will be replaced with IndexedDB reads
   const demoStats = {
     streak: 7,
@@ -8,23 +11,45 @@
     reviewsDueToday: 8,
     reviewsCompletedToday: 15,
     accuracy: 85,
+    weeklyDelta: 12,
   };
 
-  const demoHeatmap = Array.from({ length: 30 }, (_, i) => ({
-    date: new Date(Date.now() - (29 - i) * 86400000).toISOString().slice(0, 10),
-    count: Math.floor(Math.random() * 20),
-  }));
+  const demoHeatmap = Array.from({ length: 30 }, (_, i) => {
+    const date = new Date(Date.now() - (29 - i) * 86400000);
+    const dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
+    const month = date.toLocaleString('en-US', { month: 'short' });
+    const day = date.getDate();
+    const count = Math.floor(Math.random() * 20);
+    
+    return {
+      date: date.toISOString().slice(0, 10),
+      count,
+      display: `${dayName}, ${month} ${day}: ${count} reviews`,
+    };
+  });
 
-  const demoContinueStory = {
-    title: 'How the Grand Canal Helped Hold Imperial China Together',
-    slug: 'grand-canal',
-    progress: 35,
-    difficulty: 'beginner',
-  };
+  // Last 7 days accuracy trend (for sparkline)
+  const accuracyTrend = [78, 81, 79, 84, 82, 85, 85];
+
+  const demoContinueStories = [
+    {
+      title: 'The Grand Canal',
+      slug: 'grand-canal',
+      progress: 60,
+      difficulty: 'beginner',
+    },
+    {
+      title: 'Mandate of Heaven',
+      slug: 'mandate-heaven',
+      progress: 30,
+      difficulty: 'intermediate',
+    },
+  ];
 
   let stats = $state(demoStats);
   let heatmap = $state(demoHeatmap);
-  let continueStory = $state(demoContinueStory);
+  let continueStories = $state(demoContinueStories);
+  let hoverTooltip = $state(null);
 
   const hour = new Date().getHours();
 
@@ -39,12 +64,10 @@
   );
 
   let hasReviews = $derived(stats.reviewsDueToday > 0);
+  let isOverdue = $derived(stats.reviewsDueToday > 20);
   let reviewMinutes = $derived(Math.ceil(stats.reviewsDueToday * 0.4));
 
   const totalSegments = 10;
-  let filledSegments = $derived(
-    Math.round((continueStory.progress / 100) * totalSegments),
-  );
 
   function heatmapColor(count) {
     if (count === 0) return 'var(--heatmap-0)';
@@ -65,96 +88,171 @@
         return d;
     }
   }
+
+  // Generate SVG sparkline path data
+  function generateSparklinePath(data) {
+    const width = 60;
+    const height = 20;
+    const padding = 2;
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    const range = max - min || 1;
+    
+    const points = data.map((value, i) => {
+      const x = (i / (data.length - 1)) * (width - padding * 2) + padding;
+      const y = height - (((value - min) / range) * (height - padding * 2) + padding);
+      return `${x},${y}`;
+    });
+    
+    return points.join(' ');
+  }
+
+  function getWeeklyDeltaColor() {
+    return stats.weeklyDelta >= 0 ? 'var(--color-jade)' : 'var(--color-brand)';
+  }
+
+  function getWeeklyDeltaSign() {
+    return stats.weeklyDelta >= 0 ? '+' : '';
+  }
+
+  function getFilledSegments(progress) {
+    return Math.round((progress / 100) * totalSegments);
+  }
 </script>
 
 <div class="dashboard">
-  <!-- ① Greeting Header -->
-  <header class="greeting">
-    <span class="greeting-text">{greeting}</span>
-    <div class="streak-display">
-      <span class="streak-icon">🔥</span>
-      <span class="streak-number">{stats.streak}</span>
-      <span class="streak-unit">天</span>
-    </div>
-  </header>
-
-  <div class="dashboard-grid">
-    <!-- Main Column -->
-    <div class="main-column">
-      <!-- ② Review CTA Card -->
-      <section class="card review-card">
-        {#if hasReviews}
-          <p class="review-message">
-            <strong>{stats.reviewsDueToday} words</strong> to review · ~{reviewMinutes} min
-          </p>
-          <a href="/review" class="btn-primary">Start Review →</a>
-        {:else}
-          <p class="review-message caught-up">All caught up! 🎉 Next review in 3小时</p>
-        {/if}
-      </section>
-
-      <!-- ③ Continue Reading Card -->
-      <section class="card continue-card">
-        <div class="continue-header">
-          <h3 class="continue-title">{continueStory.title}</h3>
-          <span class="difficulty-badge {continueStory.difficulty}">
-            {difficultyLabel(continueStory.difficulty)}
-          </span>
-        </div>
-        <div class="progress-bar" role="progressbar" aria-valuenow={continueStory.progress} aria-valuemin={0} aria-valuemax={100}>
-          {#each Array(totalSegments) as _, i}
-            <div class="progress-segment" class:filled={i < filledSegments}></div>
-          {/each}
-        </div>
-        <div class="continue-footer">
-          <span class="progress-label">{continueStory.progress}%</span>
-          <a href="/stories/{continueStory.slug}" class="continue-link">Continue →</a>
-        </div>
-      </section>
-
-      <!-- ④ Stats Grid -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <span class="stat-emoji">🔥</span>
-          <span class="stat-value">{stats.streak}<span class="stat-unit"> 天</span></span>
-          <span class="stat-label">Streak</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-emoji">🏆</span>
-          <span class="stat-value">{stats.wordsMastered}</span>
-          <span class="stat-label">Mastered</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-emoji">📚</span>
-          <span class="stat-value">{stats.wordsInPipeline}</span>
-          <span class="stat-label">In Pipeline</span>
-          <span class="stat-trend">+5 this week</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-emoji stat-emoji--check">✓</span>
-          <span class="stat-value">{stats.reviewsCompletedToday}</span>
-          <span class="stat-label">Today</span>
-        </div>
+  {#if isNewUser}
+    <!-- ⓪ Empty State for New Users -->
+    <div class="empty-state">
+      <div class="empty-state-content">
+        <span class="empty-state-icon">🐉</span>
+        <h2 class="empty-state-heading">Welcome to LongLore!</h2>
+        <p class="empty-state-message">Start reading stories to build your vocabulary.</p>
+        <a href="/stories" class="btn-primary btn-large">Explore Stories →</a>
       </div>
     </div>
+  {:else}
+    <!-- ① Greeting Header -->
+    <header class="greeting">
+      <span class="greeting-text">{greeting}</span>
+      <div class="streak-display">
+        <span class="streak-icon">🔥</span>
+        <span class="streak-number">{stats.streak}</span>
+        <span class="streak-unit">天</span>
+      </div>
+    </header>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <!-- ⑤ 30-Day Heatmap -->
-      <section class="card heatmap-card">
-        <h3 class="card-heading">30-Day Activity</h3>
-        <div class="heatmap-grid">
-          {#each heatmap as day}
-            <div
-              class="heatmap-cell"
-              style:background-color={heatmapColor(day.count)}
-              title="{day.date}: {day.count} reviews"
-            ></div>
-          {/each}
+    <div class="dashboard-grid">
+      <!-- Main Column -->
+      <div class="main-column">
+        <!-- ② Review CTA Card -->
+        <section class="card review-card" class:review-card--overdue={isOverdue}>
+          {#if hasReviews}
+            <div class="review-header">
+              <p class="review-message">
+                <strong>{stats.reviewsDueToday} words</strong> to review · ~{reviewMinutes} min
+              </p>
+              {#if isOverdue}
+                <span class="overdue-badge">Overdue!</span>
+              {/if}
+            </div>
+            <a href="/review" class="btn-primary">Start Review →</a>
+          {:else}
+            <p class="review-message caught-up">All caught up! 🎉 Next review in 3小时</p>
+          {/if}
+        </section>
+
+        <!-- ③ Continue Reading Section -->
+        <section class="card continue-section">
+          <h3 class="section-heading">Continue Reading</h3>
+          <div class="continue-stories">
+            {#each continueStories as story}
+              <div class="story-card">
+                <div class="story-header">
+                  <h4 class="story-title">{story.title}</h4>
+                  <span class="difficulty-badge {story.difficulty}">
+                    {difficultyLabel(story.difficulty)}
+                  </span>
+                </div>
+                <div class="progress-bar" role="progressbar" aria-valuenow={story.progress} aria-valuemin={0} aria-valuemax={100}>
+                  {#each Array(totalSegments) as _, i}
+                    <div class="progress-segment" class:filled={i < getFilledSegments(story.progress)}></div>
+                  {/each}
+                </div>
+                <div class="story-footer">
+                  <span class="progress-label">{story.progress}%</span>
+                  <a href="/stories/{story.slug}" class="continue-link">Continue →</a>
+                </div>
+              </div>
+            {/each}
+          </div>
+        </section>
+
+        <!-- ④ 30-Day Heatmap -->
+        <section class="card heatmap-card">
+          <h3 class="section-heading">30-Day Activity</h3>
+          <div class="heatmap-wrapper">
+            <div class="heatmap-grid">
+              {#each heatmap as day (day.date)}
+                <div
+                  class="heatmap-cell"
+                  style:background-color={heatmapColor(day.count)}
+                  title={day.display}
+                  on:mouseenter={() => hoverTooltip = day.display}
+                  on:mouseleave={() => hoverTooltip = null}
+                ></div>
+              {/each}
+            </div>
+            {#if hoverTooltip}
+              <div class="heatmap-tooltip">{hoverTooltip}</div>
+            {/if}
+          </div>
+        </section>
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <!-- ⑤ Stats Grid (2×2 on mobile, stacked on desktop) -->
+        <div class="stats-grid-mobile">
+          <!-- Accuracy with Sparkline -->
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-emoji">✓</span>
+              <svg class="sparkline" viewBox="0 0 60 20" preserveAspectRatio="none">
+                <polyline points={generateSparklinePath(accuracyTrend)} />
+              </svg>
+            </div>
+            <span class="stat-value">{stats.accuracy}%</span>
+            <span class="stat-label">Accuracy</span>
+          </div>
+
+          <!-- Mastered with Weekly Delta -->
+          <div class="stat-card">
+            <span class="stat-emoji">🏆</span>
+            <span class="stat-value">{stats.wordsMastered}</span>
+            <span class="stat-label">Mastered</span>
+            <span class="stat-trend" style:color={getWeeklyDeltaColor()}>
+              {getWeeklyDeltaSign()}{stats.weeklyDelta} this week
+            </span>
+          </div>
+
+          <!-- Learned -->
+          <div class="stat-card">
+            <span class="stat-emoji">📚</span>
+            <span class="stat-value">{stats.wordsLearned}</span>
+            <span class="stat-label">Learned</span>
+          </div>
+
+          <!-- Today -->
+          <div class="stat-card">
+            <span class="stat-emoji">🎯</span>
+            <span class="stat-value">{stats.reviewsCompletedToday}</span>
+            <span class="stat-label">Today</span>
+          </div>
         </div>
-      </section>
-    </aside>
-  </div>
+      </aside>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -185,7 +283,7 @@
     gap: var(--space-md);
   }
 
-  @media (min-width: 1024px) {
+  @media (min-width: 768px) {
     .dashboard {
       padding: var(--space-lg) var(--space-md);
     }
@@ -210,16 +308,49 @@
 
   /* ── Cards ──────────────────────────────────────────────────── */
   .card {
-    background: var(--color-elevated);
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    padding: var(--space-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
   }
 
-  @media (min-width: 1024px) {
-    .card {
-      padding: var(--space-lg);
-    }
+  /* ── ⓪ Empty State ─────────────────────────────────────────── */
+  .empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+  }
+
+  .empty-state-content {
+    text-align: center;
+    max-width: 400px;
+  }
+
+  .empty-state-icon {
+    font-size: 64px;
+    display: block;
+    margin-bottom: var(--space-md);
+  }
+
+  .empty-state-heading {
+    font-family: var(--font-display-en);
+    font-size: var(--text-h2);
+    font-weight: 700;
+    margin: 0 0 var(--space-sm);
+    color: var(--color-text-primary);
+  }
+
+  .empty-state-message {
+    font-size: var(--text-body);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-lg);
+    line-height: var(--lh-body);
+  }
+
+  .btn-large {
+    padding: var(--space-md) var(--space-xl) !important;
+    font-size: var(--text-h3) !important;
   }
 
   /* ── ① Greeting Header ─────────────────────────────────────── */
@@ -265,13 +396,25 @@
 
   /* ── ② Review CTA Card ─────────────────────────────────────── */
   .review-card {
-    border-left: 4px solid var(--color-accent);
+    border-left: 4px solid var(--color-jade);
+  }
+
+  .review-card--overdue {
+    border-left-color: #c4392a;
+  }
+
+  .review-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
   }
 
   .review-message {
     font-size: var(--text-h3);
     color: var(--color-text-primary);
-    margin: 0 0 var(--space-md);
+    margin: 0;
     line-height: var(--lh-h3);
     font-family: var(--font-body-en);
   }
@@ -280,9 +423,21 @@
     margin-bottom: 0;
   }
 
+  .overdue-badge {
+    display: inline-block;
+    background: #c4392a;
+    color: #fff;
+    font-size: var(--text-caption);
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+    font-family: var(--font-body-en);
+  }
+
   .btn-primary {
     display: inline-block;
-    background: var(--color-accent);
+    background: var(--color-jade);
     color: #fff;
     padding: var(--space-sm) var(--space-lg);
     border-radius: var(--radius-md);
@@ -293,34 +448,57 @@
     transition:
       background var(--duration-fast) var(--ease-default),
       transform var(--duration-fast) var(--ease-default);
+    border: none;
+    cursor: pointer;
   }
 
   .btn-primary:hover {
-    background: #257a64;
+    background: #1e6b4e;
     transform: translateY(-1px);
   }
 
   .btn-primary:focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-jade);
     outline-offset: 2px;
   }
 
-  /* ── ③ Continue Reading Card ────────────────────────────────── */
-  .continue-header {
+  /* ── ③ Continue Reading Section ────────────────────────────── */
+  .section-heading {
+    font-family: var(--font-display-en);
+    font-size: var(--text-h3);
+    font-weight: 600;
+    margin: 0 0 var(--space-md);
+    color: var(--color-text-primary);
+    line-height: var(--lh-h3);
+  }
+
+  .continue-stories {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .story-card {
+    background: var(--color-elevated);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+  }
+
+  .story-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: var(--space-sm);
-    margin-bottom: var(--space-md);
+    margin-bottom: var(--space-sm);
   }
 
-  .continue-title {
+  .story-title {
     font-family: var(--font-display-en);
-    font-size: var(--text-h3);
+    font-size: var(--text-body);
     font-weight: 600;
     margin: 0;
     color: var(--color-text-primary);
-    line-height: var(--lh-h3);
+    line-height: var(--lh-body);
   }
 
   .difficulty-badge {
@@ -340,12 +518,12 @@
 
   .difficulty-badge.intermediate {
     background: rgba(205, 164, 52, 0.12);
-    color: var(--color-gold-leaf);
+    color: #cda434;
   }
 
   .difficulty-badge.advanced {
     background: rgba(196, 57, 42, 0.12);
-    color: var(--color-brand);
+    color: #c4392a;
   }
 
   .progress-bar {
@@ -356,17 +534,17 @@
 
   .progress-segment {
     flex: 1;
-    height: 6px;
-    border-radius: 3px;
-    background: var(--color-surface);
+    height: 4px;
+    border-radius: var(--radius-full);
+    background: var(--color-border);
     transition: background var(--duration-normal) var(--ease-default);
   }
 
   .progress-segment.filled {
-    background: var(--color-accent);
+    background: var(--color-jade);
   }
 
-  .continue-footer {
+  .story-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -379,7 +557,7 @@
   }
 
   .continue-link {
-    color: var(--color-accent);
+    color: var(--color-jade);
     text-decoration: none;
     font-weight: 600;
     font-size: var(--text-small);
@@ -392,28 +570,91 @@
   }
 
   .continue-link:focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-jade);
     outline-offset: 2px;
     border-radius: var(--radius-sm);
   }
 
-  /* ── ④ Stats Grid ───────────────────────────────────────────── */
-  .stats-grid {
+  /* ── ④ 30-Day Heatmap ──────────────────────────────────────── */
+  .heatmap-card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-heading {
+    font-size: var(--text-small);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-md);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: var(--font-body-en);
+  }
+
+  .heatmap-wrapper {
+    position: relative;
+  }
+
+  .heatmap-grid {
+    display: grid;
+    grid-template-rows: repeat(7, 16px);
+    grid-auto-flow: column;
+    grid-auto-columns: 16px;
+    gap: 3px;
+  }
+
+  @media (min-width: 768px) {
+    .heatmap-grid {
+      grid-template-rows: repeat(7, 20px);
+      grid-auto-columns: 20px;
+    }
+  }
+
+  .heatmap-cell {
+    border-radius: 3px;
+    transition: transform var(--duration-fast) var(--ease-default);
+    cursor: pointer;
+  }
+
+  .heatmap-cell:hover {
+    transform: scale(1.2);
+  }
+
+  .heatmap-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-text-primary);
+    color: var(--color-surface);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    white-space: nowrap;
+    margin-bottom: 8px;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  /* ── ⑤ Sidebar Stats Grid ────────────────────────────────────── */
+  .stats-grid-mobile {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-md);
   }
 
-  @media (min-width: 1024px) {
-    .stats-grid {
-      grid-template-columns: repeat(4, 1fr);
+  @media (min-width: 768px) {
+    .stats-grid-mobile {
+      grid-template-columns: 1fr;
+      gap: var(--space-md);
     }
   }
 
   .stat-card {
-    background: var(--color-elevated);
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
     padding: var(--space-md);
     display: flex;
     flex-direction: column;
@@ -422,15 +663,25 @@
     gap: var(--space-xs);
   }
 
+  .stat-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    width: 100%;
+  }
+
   .stat-emoji {
     font-size: 24px;
     line-height: 1;
   }
 
-  .stat-emoji--check {
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--color-accent);
+  .sparkline {
+    width: 60px;
+    height: 20px;
+    stroke: var(--color-jade);
+    stroke-width: 1.5;
+    fill: none;
   }
 
   .stat-value {
@@ -456,43 +707,7 @@
 
   .stat-trend {
     font-size: var(--text-caption);
-    color: var(--color-accent);
     font-weight: 500;
     font-family: var(--font-body-en);
-  }
-
-  /* ── ⑤ 30-Day Heatmap ──────────────────────────────────────── */
-  .card-heading {
-    font-size: var(--text-small);
-    font-weight: 600;
-    color: var(--color-text-secondary);
-    margin: 0 0 var(--space-md);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-family: var(--font-body-en);
-  }
-
-  .heatmap-grid {
-    display: grid;
-    grid-template-rows: repeat(7, 16px);
-    grid-auto-flow: column;
-    grid-auto-columns: 16px;
-    gap: 3px;
-  }
-
-  @media (min-width: 1024px) {
-    .heatmap-grid {
-      grid-template-rows: repeat(7, 20px);
-      grid-auto-columns: 20px;
-    }
-  }
-
-  .heatmap-cell {
-    border-radius: 3px;
-    transition: transform var(--duration-fast) var(--ease-default);
-  }
-
-  .heatmap-cell:hover {
-    transform: scale(1.2);
   }
 </style>
