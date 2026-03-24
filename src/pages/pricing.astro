@@ -1,0 +1,298 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Pricing" description="Simple, transparent pricing for LongLore. Start free or unlock everything with Pro.">
+  <div class="pricing-page">
+    <h1>Simple, Transparent Pricing</h1>
+
+    <div class="cards">
+      <!-- Free Tier -->
+      <div class="card">
+        <div class="card-header">
+          <span class="tier">Free</span>
+          <div class="price">
+            <span class="amount">$0</span>
+            <span class="period">forever</span>
+          </div>
+        </div>
+        <ul class="features">
+          <li>✓ All stories</li>
+          <li>✓ 50 word vocabulary</li>
+          <li>✓ 20 reviews/day</li>
+          <li>✓ Basic SRS</li>
+          <li>✓ Pinyin &amp; glosses</li>
+        </ul>
+        <a href="/login" class="cta cta-outlined">Get Started</a>
+      </div>
+
+      <!-- Pro Tier -->
+      <div class="card card-pro">
+        <div class="badge">Most Popular</div>
+        <div class="card-header">
+          <span class="tier">Pro</span>
+          <div class="price">
+            <span class="amount">$6.99</span>
+            <span class="period">/month</span>
+          </div>
+          <div class="price-annual">
+            or <span class="annual-price">$49.99/year</span>
+            <span class="monthly-equiv">
+              (<s>$6.99</s> $4.17/mo)
+            </span>
+          </div>
+        </div>
+        <p class="includes">Everything in Free, plus:</p>
+        <ul class="features">
+          <li>✓ Unlimited vocabulary</li>
+          <li>✓ Unlimited reviews</li>
+          <li>✓ Advanced SRS</li>
+          <li>✓ Detailed statistics</li>
+          <li>✓ Streak freeze</li>
+          <li>✓ Priority support</li>
+        </ul>
+        <a href="/login" class="cta cta-solid">Start Free Trial</a>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <section class="faq">
+      <h2>Frequently Asked Questions</h2>
+
+      <details>
+        <summary>Can I cancel anytime?</summary>
+        <p>Yes, absolutely. You can cancel your subscription at any time — no questions asked.</p>
+      </details>
+
+      <details>
+        <summary>What happens to my words if I downgrade?</summary>
+        <p>
+          Your words are always yours. If you downgrade from Pro to Free, words
+          over the 50-word limit become read-only. You won't lose them — you
+          just won't be able to add new ones until you're back under the limit
+          or upgrade again.
+        </p>
+      </details>
+
+      <details>
+        <summary>Is there a free trial?</summary>
+        <p>Yes! Every new account gets 7 days of Pro features, no credit card required.</p>
+      </details>
+
+      <details>
+        <summary>What payment methods do you accept?</summary>
+        <p>We accept all major credit cards (Visa, Mastercard, American Express) via Stripe.</p>
+      </details>
+
+      <details>
+        <summary>Do you offer refunds?</summary>
+        <p>
+          If you're not satisfied within the first 14 days of a paid subscription,
+          contact us and we'll issue a full refund.
+        </p>
+      </details>
+    </section>
+
+    <div class="trust-strip">
+      🔒 Secure payment via Stripe · 7-day free trial · Cancel anytime
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .pricing-page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-lg);
+    color: var(--color-text-primary);
+  }
+
+  h1 {
+    font-family: var(--font-display-en);
+    font-size: var(--text-h1);
+    text-align: center;
+    margin-bottom: var(--space-2xl);
+  }
+
+  /* Cards */
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-3xl);
+  }
+
+  @media (max-width: 640px) {
+    .cards {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .card {
+    background: var(--color-elevated);
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-xl);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .card-pro {
+    box-shadow: var(--shadow-md);
+    border-top: 3px solid var(--color-jade);
+  }
+
+  .badge {
+    position: absolute;
+    top: calc(-0.75em);
+    right: var(--space-lg);
+    background: var(--color-jade);
+    color: #fff;
+    font-size: var(--text-small);
+    font-weight: 600;
+    padding: var(--space-xs) var(--space-md);
+    border-radius: var(--radius-full);
+  }
+
+  .card-header {
+    margin-bottom: var(--space-lg);
+  }
+
+  .tier {
+    font-size: var(--text-h3);
+    font-weight: 600;
+    display: block;
+    margin-bottom: var(--space-sm);
+  }
+
+  .amount {
+    font-family: var(--font-display-en);
+    font-size: var(--text-hero);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .period {
+    font-size: var(--text-body);
+    color: var(--color-text-secondary);
+  }
+
+  .price-annual {
+    margin-top: var(--space-xs);
+    font-size: var(--text-small);
+    color: var(--color-text-secondary);
+  }
+
+  .annual-price {
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  .monthly-equiv s {
+    color: var(--color-text-secondary);
+  }
+
+  .includes {
+    font-size: var(--text-small);
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--space-xl);
+    flex: 1;
+  }
+
+  .features li {
+    padding: var(--space-xs) 0;
+    font-size: var(--text-body);
+  }
+
+  /* CTAs */
+  .cta {
+    display: block;
+    text-align: center;
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: var(--text-body);
+    text-decoration: none;
+    transition: opacity var(--duration-fast) var(--ease-default);
+  }
+
+  .cta:hover {
+    opacity: 0.85;
+  }
+
+  .cta-outlined {
+    border: 2px solid var(--color-jade);
+    color: var(--color-jade);
+    background: transparent;
+  }
+
+  .cta-solid {
+    background: var(--color-jade);
+    color: #fff;
+    border: 2px solid var(--color-jade);
+  }
+
+  /* FAQ */
+  .faq {
+    max-width: 680px;
+    margin: 0 auto var(--space-2xl);
+  }
+
+  .faq h2 {
+    font-size: var(--text-h2);
+    text-align: center;
+    margin-bottom: var(--space-lg);
+  }
+
+  details {
+    border-bottom: 1px solid var(--color-surface);
+    padding: var(--space-md) 0;
+  }
+
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: var(--text-body);
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary::after {
+    content: '+';
+    font-size: var(--text-h3);
+    color: var(--color-text-secondary);
+    transition: transform var(--duration-fast) var(--ease-default);
+  }
+
+  details[open] summary::after {
+    content: '−';
+  }
+
+  details p {
+    margin-top: var(--space-sm);
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Trust strip */
+  .trust-strip {
+    text-align: center;
+    font-size: var(--text-small);
+    color: var(--color-text-secondary);
+    padding: var(--space-lg) 0 var(--space-xl);
+  }
+</style>

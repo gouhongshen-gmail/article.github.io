@@ -1,0 +1,150 @@
+/* ==========================================================================
+   LongLore 龙知 — Global Styles
+   Reset, base typography, utilities, and shared component primitives.
+   ========================================================================== */
+
+@import './tokens.css';
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;700&display=swap');
+
+/* --------------------------------------------------------------------------
+   CSS Reset (minimal, modern)
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-tab-size: 4;
+  tab-size: 4;
+}
+
+img,
+picture,
+video,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* --------------------------------------------------------------------------
+   Base Typography
+   -------------------------------------------------------------------------- */
+html {
+  font-size: 100%; /* 16px */
+}
+
+body {
+  font-family: var(--font-body-en);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display-en);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+h1 { font-size: var(--text-h1); line-height: var(--lh-h1); }
+h2 { font-size: var(--text-h2); line-height: var(--lh-h2); }
+h3 { font-size: var(--text-h3); line-height: var(--lh-h3); }
+
+p {
+  margin-bottom: var(--space-md);
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--duration-fast) var(--ease-default);
+}
+
+a:hover {
+  color: var(--color-brand);
+}
+
+small {
+  font-size: var(--text-small);
+}
+
+/* --------------------------------------------------------------------------
+   Dark Mode Transitions
+   -------------------------------------------------------------------------- */
+body,
+.surface,
+.card {
+  transition:
+    background-color 0.2s var(--ease-default),
+    color 0.15s var(--ease-default);
+}
+
+/* --------------------------------------------------------------------------
+   Reduced Motion Guard
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Utilities
+   -------------------------------------------------------------------------- */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: var(--space-md);
+}
+
+/* --------------------------------------------------------------------------
+   Vocabulary Token (shared primitive)
+   -------------------------------------------------------------------------- */
+.vocab-token {
+  text-decoration: underline;
+  text-decoration-color: var(--color-jade);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  text-decoration-skip-ink: none;
+  cursor: pointer;
+  transition: text-decoration-color var(--duration-fast) var(--ease-default);
+}
+
+.vocab-token:hover {
+  text-decoration-color: var(--color-brand);
+}

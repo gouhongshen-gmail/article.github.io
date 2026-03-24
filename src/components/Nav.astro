@@ -1,0 +1,275 @@
+---
+import DarkModeToggle from '@components/DarkModeToggle.svelte';
+import UserMenu from '@components/UserMenu.svelte';
+
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+
+const links = [
+  { href: '/stories', label: 'Stories' },
+  { href: '/review', label: 'Review' },
+  { href: '/dashboard', label: 'Dashboard' },
+];
+---
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="logo">
+      <span class="logo-en">LongLore</span><span class="logo-zh">龙知</span>
+    </a>
+
+    <ul class="nav-links desktop-only">
+      {links.map(({ href, label }) => (
+        <li>
+          <a
+            href={href}
+            class:list={['nav-link', { active: currentPath.startsWith(href) }]}
+          >
+            {label}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <div class="desktop-only theme-toggle-wrapper">
+      <DarkModeToggle client:load />
+    </div>
+
+    <div class="desktop-only user-menu-wrapper">
+      <UserMenu client:load />
+    </div>
+
+    {/* Mobile hamburger (CSS-only via checkbox hack) */}
+    <input type="checkbox" id="nav-toggle" class="nav-toggle mobile-only" aria-label="Toggle menu" />
+    <label for="nav-toggle" class="hamburger mobile-only" aria-hidden="true">
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+    </label>
+
+    <div class="mobile-menu mobile-only">
+      <div class="mobile-theme-toggle">
+        <DarkModeToggle client:load />
+      </div>
+      <div class="mobile-user-menu">
+        <UserMenu client:load />
+      </div>
+      <ul class="mobile-links">
+        {links.map(({ href, label }) => (
+          <li>
+            <a
+              href={href}
+              class:list={['nav-link', { active: currentPath.startsWith(href) }]}
+            >
+              {label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<style>
+  .nav {
+    height: 56px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    border-bottom: 1px solid var(--color-border, rgba(0, 0, 0, 0.1));
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    text-decoration: none;
+    color: var(--color-text);
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .logo-en {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .logo-zh {
+    font-size: 1rem;
+    opacity: 0.8;
+  }
+
+  .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 32px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-link {
+    text-decoration: none;
+    color: var(--color-text);
+    font-size: 0.95rem;
+    padding: 16px 0;
+    position: relative;
+    transition: color 0.2s;
+  }
+
+  .nav-link:hover {
+    color: var(--color-vermillion);
+  }
+
+  .nav-link.active {
+    color: var(--color-vermillion);
+  }
+
+  .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--color-vermillion);
+    border-radius: 2px 2px 0 0;
+  }
+
+  .theme-toggle-wrapper {
+    display: flex;
+    align-items: center;
+  }
+
+  .user-menu-wrapper {
+    display: flex;
+    align-items: center;
+  }
+
+  .mobile-theme-toggle {
+    display: flex;
+    justify-content: flex-end;
+    padding-bottom: 12px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--color-border, rgba(0, 0, 0, 0.1));
+  }
+
+  .mobile-user-menu {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 0 16px;
+  }
+
+  /* Mobile hamburger (CSS-only) */
+  .nav-toggle {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+  }
+
+  .hamburger-bar {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: var(--color-text);
+    border-radius: 1px;
+    transition: transform 0.3s, opacity 0.3s;
+  }
+
+  .nav-toggle:checked ~ .hamburger .hamburger-bar:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .nav-toggle:checked ~ .hamburger .hamburger-bar:nth-child(2) {
+    opacity: 0;
+  }
+
+  .nav-toggle:checked ~ .hamburger .hamburger-bar:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .mobile-menu {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border, rgba(0, 0, 0, 0.1));
+    padding: 16px 24px;
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.3s, opacity 0.3s;
+    z-index: 49;
+  }
+
+  .nav-toggle:checked ~ .mobile-menu {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mobile-links .nav-link {
+    display: block;
+    padding: 12px 0;
+    font-size: 1.1rem;
+  }
+
+  .mobile-links .nav-link.active::after {
+    display: none;
+  }
+
+  .mobile-links .nav-link.active {
+    border-left: 3px solid var(--color-vermillion);
+    padding-left: 12px;
+  }
+
+  /* Responsive visibility */
+  .desktop-only {
+    display: none;
+  }
+
+  .mobile-only {
+    display: flex;
+  }
+
+  @media (min-width: 768px) {
+    .desktop-only {
+      display: flex;
+    }
+
+    .mobile-only {
+      display: none !important;
+    }
+  }
+</style>

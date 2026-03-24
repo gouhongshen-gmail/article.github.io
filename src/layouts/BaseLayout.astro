@@ -1,0 +1,85 @@
+---
+import Nav from '@components/Nav.astro';
+import Footer from '@components/Footer.astro';
+import '@/styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+  ogType?: 'website' | 'article';
+}
+
+const { title, description, ogImage, ogType = 'website' } = Astro.props;
+
+const isHomepage = Astro.url.pathname === '/' || Astro.url.pathname === '';
+const pageTitle = title.includes('LongLore')
+  ? title
+  : isHomepage
+    ? (title || 'LongLore 龙知')
+    : `${title} | LongLore 龙知`;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const basePath = import.meta.env.BASE_URL;
+const manifestURL = `${basePath}manifest.json`;
+const faviconURL = `${basePath}images/favicon.png`;
+const appleTouchIconURL = `${basePath}images/icon-192.png`;
+const swURL = `${basePath}service-worker.js`;
+const ogImageURL = new URL(ogImage ?? `${basePath}images/banner.jpg`, Astro.site).href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={canonicalURL} />
+    <link rel="icon" href={faviconURL} />
+    <link rel="apple-touch-icon" href={appleTouchIconURL} />
+    <link rel="manifest" href={manifestURL} />
+    <meta name="theme-color" content="#f5f0e6" />
+
+    {/* Open Graph */}
+    <meta property="og:site_name" content="LongLore 龙知" />
+    <meta property="og:title" content={pageTitle} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    {description && <meta name="twitter:description" content={description} />}
+    <meta name="twitter:image" content={ogImageURL} />
+
+    {/* Dark mode FOUC prevention — must run before paint */}
+    <script is:inline>
+      (function(){
+        const t = localStorage.getItem('theme') ||
+          (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
+    <slot name="head" />
+  </head>
+  <body>
+    <Nav currentPath={Astro.url.pathname} />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+    <script is:inline define:vars={{ swURL }}>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register(swURL).catch(() => {});
+        });
+      }
+    </script>
+  </body>
+</html>
+
+<style>
+  main {
+    min-height: calc(100vh - 56px - 200px);
+  }
+</style>

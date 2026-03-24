@@ -1,0 +1,85 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="About" description="LongLore helps you learn Chinese through compelling historical stories, with sentence-by-sentence translations, pinyin, and spaced repetition.">
+  <div class="prose">
+    <h1>About LongLore 龙知</h1>
+
+    <p>
+      LongLore helps people learn Chinese through compelling historical stories.
+      Instead of boring textbook dialogues, we use real stories from Chinese
+      history — the Grand Canal, the Mandate of Heaven, the Three Kingdoms, and
+      more.
+    </p>
+    <p>
+      Each story comes with sentence-by-sentence translations, pinyin
+      pronunciation guides, and vocabulary glosses. Our spaced repetition system
+      ensures you actually remember what you learn.
+    </p>
+
+    <h2>How It Works</h2>
+    <p>
+      Learning with LongLore follows a simple cycle:
+    </p>
+    <ol>
+      <li>
+        <strong>Read</strong> — Immerse yourself in a story from Chinese history.
+        Tap any sentence for its translation, pinyin, and word-by-word glosses.
+      </li>
+      <li>
+        <strong>Discover</strong> — Save new words to your personal vocabulary as
+        you encounter them naturally in context.
+      </li>
+      <li>
+        <strong>Remember</strong> — Our spaced repetition system schedules
+        reviews at the optimal time so new words move into long-term memory.
+      </li>
+    </ol>
+
+    <h2>Our Philosophy</h2>
+    <p>
+      We believe learning should be interesting, not tedious. Textbooks fill
+      pages with contrived dialogues about buying train tickets. We'd rather you
+      read about Zhuge Liang's strategies or the construction of the Great Wall.
+    </p>
+    <p>
+      Real content. Real history. Real Chinese. That's the LongLore way.
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .prose {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-lg);
+    line-height: 1.7;
+    color: var(--color-text-primary);
+  }
+  .prose h1 {
+    font-family: var(--font-display-en);
+    font-size: var(--text-h1);
+    margin-bottom: var(--space-lg);
+  }
+  .prose h2 {
+    font-size: var(--text-h2);
+    margin-top: var(--space-2xl);
+    margin-bottom: var(--space-md);
+  }
+  .prose p {
+    margin-bottom: var(--space-md);
+  }
+  .prose ul,
+  .prose ol {
+    margin-bottom: var(--space-md);
+    padding-left: var(--space-lg);
+  }
+  .prose li {
+    margin-bottom: var(--space-sm);
+  }
+  .prose a {
+    color: var(--color-jade);
+    text-decoration: underline;
+  }
+</style>

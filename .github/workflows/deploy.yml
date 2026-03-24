@@ -1,4 +1,4 @@
-name: Deploy Blog + Workers
+name: Deploy Astro + Workers
 
 on:
   push:
@@ -42,25 +42,24 @@ jobs:
       - name: Install worker dependencies
         run: npm ci --prefix workers
 
-      - name: Generate static files
-        run: npx hexo generate
+      - name: Type check site
+        run: npm run check
+
+      - name: Build static site
+        run: npm run build
 
       - name: Verify generated artifacts
         run: |
-          test -f public/api/vocabulary.json
-          test -f public/api/articles-meta.json
-          test -f public/manifest.json
-          test -f public/service-worker.js
-          test -f public/atom.xml
-          test -f public/sitemap.xml
+          test -f dist/index.html
+          test -f dist/stories/index.html
+          test -f dist/review/index.html
+          test -f dist/manifest.json
+          test -f dist/service-worker.js
+          test -f dist/robots.txt
+          test -f dist/sitemap-index.xml
 
-      - name: Syntax check JS bundles
+      - name: Syntax check workers
         run: |
-          node --check source/js/platform-api.js
-          node --check source/js/auth-ui.js
-          node --check source/js/srs-engine.js
-          node --check source/js/sync.js
-          node --check source/js/paywall.js
           node --check workers/auth/src/index.js
           node --check workers/sync/src/index.js
           node --check workers/payment/src/index.js
@@ -69,8 +68,8 @@ jobs:
       - name: Upload site artifact
         uses: actions/upload-artifact@v4
         with:
-          name: site-public
-          path: public
+          name: site-dist
+          path: dist
 
   deploy-cloudflare-pages:
     if: ${{ vars.CLOUDFLARE_PAGES_PROJECT != '' }}
@@ -80,15 +79,15 @@ jobs:
       - name: Download site artifact
         uses: actions/download-artifact@v4
         with:
-          name: site-public
-          path: public
+          name: site-dist
+          path: dist
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy public --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT || 'chronosina' }}
+          command: pages deploy dist --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT || 'chronosina' }}
 
   deploy-github-pages:
     if: ${{ vars.CLOUDFLARE_PAGES_PROJECT == '' }}
@@ -98,14 +97,14 @@ jobs:
       - name: Download site artifact
         uses: actions/download-artifact@v4
         with:
-          name: site-public
-          path: public
+          name: site-dist
+          path: dist
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+          publish_dir: ./dist
           commit_message: "docs: auto deploy from GitHub Actions [skip ci]"
 
   deploy-workers:

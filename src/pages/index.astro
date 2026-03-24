@@ -1,0 +1,588 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+const pageTitle = 'LongLore 龙知 — Learn Chinese Through History Stories';
+const pageDescription =
+  'Master Mandarin Chinese through real history stories. Read about the Grand Canal, the Mandate of Heaven, and more — with pinyin, glosses, and spaced repetition review. Free to start.';
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'LongLore 龙知',
+  url: 'https://loonglore.com/',
+  description: 'Learn Chinese through history stories',
+};
+
+const courseSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Course',
+  name: 'Learn Chinese Through History',
+  provider: {
+    '@type': 'Organization',
+    name: 'LongLore 龙知',
+    url: 'https://loonglore.com',
+  },
+  educationalLevel: ['Beginner', 'Intermediate', 'Advanced'],
+  teaches: 'Chinese (Mandarin)',
+  inLanguage: ['en', 'zh'],
+  isAccessibleForFree: true,
+};
+
+const valueCards = [
+  {
+    title: 'Stories, Not Textbooks',
+    copy: 'Learn vocabulary through real history, not artificial dialogues.',
+  },
+  {
+    title: "You'll Actually Remember",
+    copy: 'Smart review ensures every word sticks, using proven spaced repetition.',
+  },
+  {
+    title: 'Sentence-Level Clarity',
+    copy: 'Every Chinese sentence comes with pinyin, glosses, and English side-by-side.',
+  },
+];
+
+const demoSentences = [
+  {
+    zh: '大运河把北方朝廷与南方富庶的农业地区连接起来。',
+    pinyin: 'Dà Yùn Hé bǎ běi fāng cháo tíng yǔ nán fāng fù shù de nóng yè dì qū lián jiē qǐ lái.',
+    en: 'The Grand Canal linked northern courts with the rich agricultural regions of the south.',
+  },
+  {
+    zh: '正因为有了这条通道，粮食、税赋和官方文书才能更高效地流动。',
+    pinyin: 'Zhèng yīn wèi yǒu le zhè tiáo tōng dào, liáng shi, shuì fù hé guān fāng wén shū cái néng gèng gāo xiào de liú dòng.',
+    en: 'Because of that link, grain, tax revenue, and official messages could travel much more efficiently.',
+  },
+  {
+    zh: '隋朝统治者在更早水道的基础上加以扩建，把它们变成了一项规模宏大的国家工程。',
+    pinyin: 'Suí cháo tǒng zhì zhě zài gèng zǎo shuǐ dào de jī chǔ shàng jiā yǐ kuò jiàn, bǎ tā men biàn chéng le yī xiàng guī mó hóng dà de guó jiā gōng chéng.',
+    en: 'Sui rulers expanded older waterways and turned them into an immense state project.',
+  },
+];
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(courseSchema)} />
+  </Fragment>
+
+  <section class="hero">
+    <div class="hero__content container">
+      <div class="hero__copy">
+        <p class="hero__eyebrow">Chinese, through the ages.</p>
+        <h1>Learn Chinese Through the Ages</h1>
+        <p class="hero__lede">
+          Master Mandarin through real history stories — from the Grand Canal to the
+          Mandate of Heaven.
+        </p>
+        <div class="hero__actions">
+          <a href="/stories" class="cta cta--primary" data-cta="hero">
+            Start Learning — Free
+          </a>
+          <p class="hero__trust">No credit card required · Free forever for 50 words</p>
+        </div>
+      </div>
+
+      <div class="hero__visual" aria-hidden="true">
+        <svg class="hero__glyph" viewBox="0 0 240 240" role="presentation">
+          <path class="stroke stroke--1" d="M54 50 L88 84" pathLength="100" />
+          <path class="stroke stroke--2" d="M42 84 H114" pathLength="100" />
+          <path class="stroke stroke--3" d="M80 38 V186" pathLength="100" />
+          <path class="stroke stroke--4" d="M48 132 H114" pathLength="100" />
+          <path class="stroke stroke--5" d="M42 184 H114" pathLength="100" />
+          <path class="stroke stroke--6" d="M142 82 H198 V182 H142 Z" pathLength="240" />
+          <path class="stroke stroke--7" d="M142 132 H198" pathLength="100" />
+          <path class="underline" d="M76 210 H164" pathLength="100" />
+        </svg>
+        <p class="hero__glyph-note">zhī · to know</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="value-props section-shell">
+    <div class="container">
+      <div class="value-grid">
+        {valueCards.map((card, index) => (
+          <article class="value-card">
+            <div class="value-card__icon" aria-hidden="true">
+              {index === 0 && (
+                <svg viewBox="0 0 48 48" role="presentation">
+                  <path d="M10 14h22c4 0 6 2 6 6v14c-2-2-4-3-7-3H10z" />
+                  <path d="M10 14v20c0 2 2 4 4 4h17" />
+                  <path d="M16 21h14" />
+                  <path d="M16 27h10" />
+                </svg>
+              )}
+              {index === 1 && (
+                <svg viewBox="0 0 48 48" role="presentation">
+                  <path d="M24 10c6 0 11 5 11 11 0 2-.5 3.8-1.5 5.4" />
+                  <path d="M24 10c-6 0-11 5-11 11 0 2 .5 3.8 1.5 5.4" />
+                  <path d="M18 31c1.5-1.5 3.7-2.5 6-2.5s4.5 1 6 2.5" />
+                  <path d="M15 34c2.3 2.5 5.4 4 9 4s6.7-1.5 9-4" />
+                  <path d="M34 14l4 1-2 4" />
+                </svg>
+              )}
+              {index === 2 && (
+                <svg viewBox="0 0 48 48" role="presentation">
+                  <path d="M8 14h14v10H8z" />
+                  <path d="M26 14h14v6H26z" />
+                  <path d="M26 24h14v10H26z" />
+                  <path d="M8 28h14v6H8z" />
+                  <path d="M22 19h4" />
+                  <path d="M22 31h4" />
+                </svg>
+              )}
+            </div>
+            <h2>{card.title}</h2>
+            <p>{card.copy}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="demo section-shell">
+    <div class="container demo__inner">
+      <div class="demo__header">
+        <p class="section-kicker">Read → Discover → Remember</p>
+        <h2>Try it yourself</h2>
+        <p>
+          Read a real Chinese history sentence, see the pinyin, and understand it in
+          context — before you ever create an account.
+        </p>
+      </div>
+
+      <div class="demo__list">
+        {demoSentences.map((sentence) => (
+          <article class="demo-card">
+            <p class="demo-card__zh" lang="zh-CN">{sentence.zh}</p>
+            <p class="demo-card__pinyin">{sentence.pinyin}</p>
+            <p class="demo-card__en">{sentence.en}</p>
+          </article>
+        ))}
+      </div>
+
+      <!-- video-walkthrough-slot -->
+
+      <div class="demo__cta">
+        <a href="/stories" class="cta cta--secondary" data-cta="how-it-works">
+          Try Your First Story →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats-strip">
+    <div class="container stats-strip__grid">
+      <div class="stat">
+        <span class="stat__number">12</span>
+        <span class="stat__label">Stories</span>
+      </div>
+      <div class="stat">
+        <span class="stat__number">800+</span>
+        <span class="stat__label">Words</span>
+      </div>
+      <div class="stat">
+        <span class="stat__number">4</span>
+        <span class="stat__label">Dynasties</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- testimonials-slot -->
+  <!-- as-seen-in-slot -->
+
+  <section class="pricing-strip">
+    <div class="container pricing-strip__inner">
+      <p>✓ Free forever · 50 words · 20 reviews/day</p>
+      <a href="/pricing" data-cta="pricing-strip">See all plans →</a>
+    </div>
+  </section>
+
+  <section class="footer-cta section-shell">
+    <div class="container footer-cta__inner">
+      <h2>Start your journey through Chinese history</h2>
+      <a href="/stories" class="cta cta--primary" data-cta="footer">
+        Get Started Free
+      </a>
+      <p>Join free. No credit card.</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .section-shell {
+    padding: var(--space-3xl) 0;
+  }
+
+  .section-kicker,
+  .hero__eyebrow {
+    font-size: var(--text-small);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-brand);
+    margin-bottom: var(--space-md);
+  }
+
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    transition:
+      transform var(--duration-fast) var(--ease-default),
+      box-shadow var(--duration-fast) var(--ease-default),
+      opacity var(--duration-fast) var(--ease-default);
+  }
+
+  .cta:hover {
+    transform: translateY(-1px);
+  }
+
+  .cta--primary {
+    background: var(--color-brand);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(196, 57, 42, 0.28);
+  }
+
+  .cta--primary:hover {
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(196, 57, 42, 0.22);
+  }
+
+  .cta--secondary {
+    color: var(--color-brand);
+    border: 1px solid rgba(196, 57, 42, 0.24);
+    background: rgba(255, 255, 255, 0.45);
+  }
+
+  .hero {
+    min-height: calc(100svh - 56px);
+    display: flex;
+    align-items: center;
+    background:
+      radial-gradient(circle at top right, rgba(205, 164, 52, 0.12), transparent 30%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 30%),
+      var(--color-bg);
+  }
+
+  .hero__content {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+    gap: var(--space-2xl);
+    align-items: center;
+    padding-top: var(--space-2xl);
+    padding-bottom: var(--space-2xl);
+  }
+
+  .hero h1 {
+    max-width: 12ch;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.04;
+    margin-bottom: var(--space-lg);
+  }
+
+  .hero__lede {
+    max-width: 40rem;
+    font-size: clamp(1.05rem, 2vw, 1.2rem);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-xl);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+
+  .hero__trust {
+    margin: 0;
+    font-size: var(--text-small);
+    color: var(--color-text-secondary);
+    opacity: 0.75;
+  }
+
+  .hero__visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .hero__glyph {
+    width: min(100%, 280px);
+    height: auto;
+    overflow: visible;
+  }
+
+  .stroke,
+  .underline {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+  }
+
+  .stroke {
+    stroke: var(--color-ink);
+    stroke-width: 10;
+    animation: draw-stroke 1.2s ease forwards;
+  }
+
+  .stroke--1 { animation-delay: 0.3s; }
+  .stroke--2 { animation-delay: 0.4s; }
+  .stroke--3 { animation-delay: 0.5s; }
+  .stroke--4 { animation-delay: 0.6s; }
+  .stroke--5 { animation-delay: 0.7s; }
+  .stroke--6 { animation-delay: 0.8s; }
+  .stroke--7 { animation-delay: 0.95s; }
+
+  .underline {
+    stroke: var(--color-brand);
+    stroke-width: 7;
+    animation: draw-stroke 0.5s ease forwards;
+    animation-delay: 1.25s;
+  }
+
+  .hero__glyph-note {
+    margin: 0;
+    font-size: var(--text-small);
+    color: var(--color-text-secondary);
+  }
+
+  .value-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-lg);
+  }
+
+  .value-card {
+    background: color-mix(in srgb, var(--color-parchment) 84%, white);
+    border: 1px solid rgba(28, 25, 23, 0.08);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .value-card__icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: var(--space-md);
+    color: var(--color-ink);
+  }
+
+  .value-card__icon svg {
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+  }
+
+  .value-card h2 {
+    font-size: 1.35rem;
+    margin-bottom: var(--space-sm);
+  }
+
+  .value-card p {
+    margin: 0;
+    color: var(--color-text-secondary);
+  }
+
+  .demo__inner {
+    max-width: 68rem;
+  }
+
+  .demo__header {
+    max-width: 42rem;
+    margin: 0 auto var(--space-2xl);
+    text-align: center;
+  }
+
+  .demo__header p:last-child {
+    margin-bottom: 0;
+    color: var(--color-text-secondary);
+  }
+
+  .demo__list {
+    display: grid;
+    gap: var(--space-md);
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+
+  .demo-card {
+    background: color-mix(in srgb, var(--color-elevated) 82%, var(--color-parchment));
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .demo-card__zh {
+    margin-bottom: var(--space-xs);
+    font-size: clamp(1.25rem, 3vw, 1.65rem);
+    line-height: 1.7;
+    color: var(--color-text-primary);
+  }
+
+  .demo-card__pinyin {
+    margin-bottom: var(--space-sm);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+  }
+
+  .demo-card__en {
+    margin: 0;
+    color: var(--color-text-secondary);
+  }
+
+  .demo__cta {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-xl);
+  }
+
+  .stats-strip {
+    padding: 5rem 0;
+    background: var(--color-ink);
+    color: var(--color-parchment);
+  }
+
+  .stats-strip__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-lg);
+    text-align: center;
+  }
+
+  .stat__number {
+    display: block;
+    font-family: var(--font-display-en);
+    font-size: clamp(2.5rem, 6vw, 3rem);
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .stat__label {
+    display: block;
+    margin-top: var(--space-sm);
+    font-size: var(--text-small);
+    color: rgba(245, 240, 230, 0.72);
+  }
+
+  .pricing-strip {
+    border-top: 1px solid var(--color-border-subtle);
+    border-bottom: 1px solid var(--color-border-subtle);
+    background: color-mix(in srgb, var(--color-bg) 92%, white);
+  }
+
+  .pricing-strip__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding-top: var(--space-lg);
+    padding-bottom: var(--space-lg);
+  }
+
+  .pricing-strip__inner p {
+    margin: 0;
+    color: var(--color-text-primary);
+  }
+
+  .pricing-strip__inner a {
+    flex-shrink: 0;
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+
+  .footer-cta__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-md);
+  }
+
+  .footer-cta__inner h2 {
+    max-width: 16ch;
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3rem);
+  }
+
+  .footer-cta__inner p {
+    margin: 0;
+    font-size: var(--text-small);
+    color: var(--color-text-secondary);
+    opacity: 0.75;
+  }
+
+  @keyframes draw-stroke {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .value-grid,
+    .stats-strip__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .section-shell {
+      padding: var(--space-2xl) 0;
+    }
+
+    .hero {
+      min-height: auto;
+    }
+
+    .hero__content {
+      grid-template-columns: 1fr;
+      text-align: center;
+      gap: var(--space-xl);
+      padding-top: var(--space-xl);
+      padding-bottom: var(--space-2xl);
+    }
+
+    .hero h1,
+    .hero__lede {
+      max-width: none;
+    }
+
+    .hero__actions {
+      align-items: stretch;
+    }
+
+    .hero__visual {
+      order: 3;
+    }
+
+    .hero__glyph {
+      width: 160px;
+    }
+
+    .pricing-strip__inner {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .demo-card,
+    .value-card {
+      padding: var(--space-md);
+    }
+  }
+</style>

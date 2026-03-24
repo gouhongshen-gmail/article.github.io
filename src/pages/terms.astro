@@ -1,0 +1,132 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Terms of Service" description="Terms of Service for LongLore 龙知. Please read these terms before using our platform.">
+  <div class="prose">
+    <h1>Terms of Service</h1>
+    <p class="updated">Last updated: January 2025</p>
+
+    <p>
+      Welcome to LongLore ("we," "us," or "our"). By accessing or using
+      loonglore.com, you agree to be bound by these terms. If you do not agree,
+      please do not use the service.
+    </p>
+
+    <h2>1. Acceptance of Terms</h2>
+    <p>
+      By creating an account or using LongLore, you confirm that you are at
+      least 13 years of age and agree to these Terms of Service and our
+      <a href="/privacy">Privacy Policy</a>.
+    </p>
+
+    <h2>2. Your Account</h2>
+    <p>
+      You are responsible for maintaining the security of your account
+      credentials. You may sign in using Google or X (Twitter) OAuth. You agree
+      not to share your account or use another person's account without
+      permission.
+    </p>
+
+    <h2>3. Content Usage</h2>
+    <p>
+      LongLore provides Chinese language learning content including historical
+      stories, translations, pinyin, and vocabulary glosses. This content is
+      provided for personal, non-commercial educational use. You may not
+      reproduce, redistribute, or sell our content without written permission.
+    </p>
+
+    <h2>4. Subscriptions &amp; Payments</h2>
+    <p>
+      LongLore offers a free tier and a paid Pro subscription. Pro subscriptions
+      are billed monthly or annually through Stripe. Prices are listed on our
+      <a href="/pricing">pricing page</a> and may change with 30 days' notice.
+    </p>
+
+    <h2>5. Cancellation &amp; Refunds</h2>
+    <p>
+      You may cancel your Pro subscription at any time. Upon cancellation, you
+      retain access to Pro features until the end of your current billing period.
+      If you are unsatisfied within the first 14 days of a paid subscription,
+      contact us for a full refund.
+    </p>
+
+    <h2>6. Intellectual Property</h2>
+    <p>
+      All content, design, code, and branding on LongLore is owned by us or our
+      licensors. The vocabulary and review data you create belongs to you — you
+      may export it at any time.
+    </p>
+
+    <h2>7. Acceptable Use</h2>
+    <p>You agree not to:</p>
+    <ul>
+      <li>Use the service for any unlawful purpose</li>
+      <li>Attempt to reverse-engineer or scrape our content</li>
+      <li>Interfere with the security or operation of the service</li>
+      <li>Create multiple accounts to circumvent free-tier limits</li>
+    </ul>
+
+    <h2>8. Limitation of Liability</h2>
+    <p>
+      LongLore is provided "as is" without warranty of any kind. To the maximum
+      extent permitted by law, we shall not be liable for any indirect,
+      incidental, or consequential damages arising from your use of the service.
+      Our total liability shall not exceed the amount you have paid us in the
+      12 months preceding the claim.
+    </p>
+
+    <h2>9. Changes to These Terms</h2>
+    <p>
+      We may update these terms from time to time. If we make material changes,
+      we'll notify you via email or a prominent notice on our website at least
+      30 days before the changes take effect.
+    </p>
+
+    <h2>10. Contact</h2>
+    <p>
+      If you have questions about these terms, contact us at
+      <a href="mailto:legal@loonglore.com">legal@loonglore.com</a>.
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .prose {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-lg);
+    line-height: 1.7;
+    color: var(--color-text-primary);
+  }
+  .prose h1 {
+    font-family: var(--font-display-en);
+    font-size: var(--text-h1);
+    margin-bottom: var(--space-sm);
+  }
+  .prose .updated {
+    color: var(--color-text-secondary);
+    font-size: var(--text-small);
+    margin-bottom: var(--space-xl);
+  }
+  .prose h2 {
+    font-size: var(--text-h2);
+    margin-top: var(--space-2xl);
+    margin-bottom: var(--space-md);
+  }
+  .prose p {
+    margin-bottom: var(--space-md);
+  }
+  .prose ul,
+  .prose ol {
+    margin-bottom: var(--space-md);
+    padding-left: var(--space-lg);
+  }
+  .prose li {
+    margin-bottom: var(--space-xs);
+  }
+  .prose a {
+    color: var(--color-jade);
+    text-decoration: underline;
+  }
+</style>

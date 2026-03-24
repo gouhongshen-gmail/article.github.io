@@ -1,0 +1,131 @@
+/* ==========================================================================
+   LongLore 龙知 — Reading Styles
+   Article typography, bilingual layout, and reading-mode overrides.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Article Base Typography
+   -------------------------------------------------------------------------- */
+.article {
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  max-width: 72ch;
+  margin-inline: auto;
+}
+
+.article :lang(zh),
+.article [lang="zh"] {
+  font-family: var(--font-display-cn);
+  line-height: var(--lh-body-cjk);
+  font-size: 1.05em;
+}
+
+.article h1 { margin-bottom: var(--space-lg); }
+.article h2 { margin-top: var(--space-2xl); margin-bottom: var(--space-md); }
+.article h3 { margin-top: var(--space-xl); margin-bottom: var(--space-sm); }
+
+.article h1:lang(zh),
+.article h2:lang(zh),
+.article h3:lang(zh) {
+  font-family: var(--font-display-cn);
+}
+
+.article h1:lang(zh) { line-height: var(--lh-h1-cjk); }
+.article h2:lang(zh) { line-height: var(--lh-h2-cjk); }
+.article h3:lang(zh) { line-height: var(--lh-h3-cjk); }
+
+.article p + p {
+  margin-top: var(--space-md);
+}
+
+/* --------------------------------------------------------------------------
+   Section Dividers
+   -------------------------------------------------------------------------- */
+.article hr {
+  border: none;
+  border-top: 1px solid var(--color-border-subtle);
+  margin-block: var(--space-2xl);
+}
+
+/* --------------------------------------------------------------------------
+   Bilingual Lesson Block (.cnlesson)
+   Layout: ZH paragraph followed by EN paragraph
+   -------------------------------------------------------------------------- */
+.cnlesson {
+  margin-block: var(--space-xl);
+  padding: var(--space-lg);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+
+.cnlesson p:lang(zh),
+.cnlesson .zh {
+  font-family: var(--font-display-cn);
+  font-size: 1.1em;
+  line-height: var(--lh-body-cjk);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.cnlesson p:lang(en),
+.cnlesson .en {
+  font-family: var(--font-body-en);
+  font-size: var(--text-small);
+  line-height: var(--lh-body);
+  color: var(--color-text-secondary);
+}
+
+.cnlesson + .cnlesson {
+  margin-top: var(--space-md);
+}
+
+/* --------------------------------------------------------------------------
+   Classical Chinese Quotation
+   -------------------------------------------------------------------------- */
+.classical-quote {
+  font-family: var(--font-display-cn);
+  font-size: 1.1em;
+  line-height: var(--lh-body-cjk);
+  padding-left: var(--space-lg);
+  border-left: 3px solid var(--color-vermillion);
+  margin-block: var(--space-xl);
+  color: var(--color-text-primary);
+}
+
+.classical-quote cite {
+  display: block;
+  margin-top: var(--space-sm);
+  font-size: var(--text-small);
+  font-style: normal;
+  color: var(--color-text-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   Reading Mode — Sepia Overrides
+   -------------------------------------------------------------------------- */
+[data-reading-mode="sepia"] {
+  --color-bg: #f0ead8;
+  --color-text-primary: #33302b;
+  --color-surface: #e8e2d0;
+  --color-border-subtle: #d0cab8;
+}
+
+[data-reading-mode="sepia"] .article {
+  line-height: 1.9;
+}
+
+[data-reading-mode="sepia"] .article :lang(zh) {
+  line-height: 1.9;
+}
+
+/* Sepia + Dark */
+[data-theme="dark"][data-reading-mode="sepia"] {
+  --color-bg: #1a1814;
+  --color-text-primary: #d9d0c0;
+  --color-surface: #22201b;
+  --color-border-subtle: #2f2c27;
+}
+
+[data-theme="dark"][data-reading-mode="sepia"] .article {
+  line-height: 1.9;
+}

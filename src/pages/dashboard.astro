@@ -1,0 +1,8 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import DashboardView from '@components/DashboardView.svelte';
+---
+
+<BaseLayout title="Dashboard" description="Your Chinese learning progress and review status.">
+  <DashboardView client:load />
+</BaseLayout>

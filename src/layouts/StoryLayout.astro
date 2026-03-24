@@ -1,0 +1,194 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import '@/styles/reading.css';
+import WordPopover from '@components/WordPopover.svelte';
+import ReadingToolbar from '@components/ReadingToolbar.svelte';
+
+interface Props {
+  title: string;
+  description?: string;
+  date?: string;
+  tags?: string[];
+  difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
+}
+
+const { title, description, date, tags = [], difficulty } = Astro.props;
+
+const difficultyColors: Record<string, string> = {
+  Beginner: 'var(--color-jade)',
+  Intermediate: 'var(--color-gold)',
+  Advanced: 'var(--color-vermillion)',
+};
+
+// Estimate reading time (~200 words/min for Chinese-heavy content)
+const body = await Astro.slots.render('default');
+const wordCount = body.replace(/<[^>]*>/g, '').trim().split(/\s+/).length;
+const readingTime = Math.max(1, Math.ceil(wordCount / 200));
+
+const formattedDate = date
+  ? new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  : undefined;
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description: description || title,
+  datePublished: date,
+  inLanguage: ['en', 'zh-CN'],
+  isAccessibleForFree: true,
+  author: {
+    '@type': 'Organization',
+    name: 'LongLore 龙知',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'LongLore 龙知',
+    url: new URL('/', Astro.site).href,
+  },
+  mainEntityOfPage: new URL(Astro.url.pathname, Astro.site).href,
+  image: new URL('/images/banner.jpg', Astro.site).href,
+};
+---
+
+<BaseLayout title={title} description={description} ogType="article">
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+  </Fragment>
+  {/* Reading progress bar */}
+  <div id="reading-progress" class="progress-bar" aria-hidden="true"></div>
+
+  <div class="story-wrapper">
+    <a href="/stories" class="back-link">← All Stories</a>
+
+    <header class="story-header">
+      <h1 class="story-title">{title}</h1>
+      <div class="story-meta">
+        {difficulty && (
+          <span
+            class="difficulty-badge"
+            style={`--badge-color: ${difficultyColors[difficulty]}`}
+          >
+            {difficulty}
+          </span>
+        )}
+        {formattedDate && <time datetime={date}>{formattedDate}</time>}
+        <span class="reading-time">{readingTime} min read</span>
+      </div>
+      {tags.length > 0 && (
+        <div class="story-tags">
+          {tags.map((tag) => (
+            <span class="tag">#{tag}</span>
+          ))}
+        </div>
+      )}
+    </header>
+
+    <article class="story-content">
+      <slot />
+    </article>
+  </div>
+
+  <WordPopover client:load />
+  <ReadingToolbar client:idle />
+
+  {/* Reading progress script — pure DOM, no framework */}
+  <script is:inline>
+    (function() {
+      const bar = document.getElementById('reading-progress');
+      if (!bar) return;
+      window.addEventListener('scroll', function() {
+        const pct = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+        bar.style.width = Math.min(pct * 100, 100) + '%';
+      }, { passive: true });
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0%;
+    background: var(--color-vermillion);
+    z-index: 100;
+    transition: width 0.1s linear;
+    pointer-events: none;
+  }
+
+  .story-wrapper {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+
+  .back-link {
+    display: inline-block;
+    color: var(--color-vermillion);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+    transition: opacity 0.2s;
+  }
+
+  .back-link:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+  }
+
+  .story-header {
+    margin-bottom: 40px;
+  }
+
+  .story-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0 0 16px;
+    color: var(--color-text);
+  }
+
+  .story-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary, var(--color-text));
+    opacity: 0.75;
+  }
+
+  .difficulty-badge {
+    display: inline-block;
+    background: var(--badge-color);
+    color: #fff;
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 1;
+  }
+
+  .reading-time {
+    white-space: nowrap;
+  }
+
+  .story-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .tag {
+    font-size: 0.8rem;
+    color: var(--color-vermillion);
+    opacity: 0.85;
+  }
+</style>
