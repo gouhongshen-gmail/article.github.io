@@ -2,6 +2,7 @@
 import Nav from '@components/Nav.astro';
 import Footer from '@components/Footer.astro';
 import MobileTabBar from '@components/MobileTabBar.astro';
+import OnboardingBanner from '@components/OnboardingBanner.svelte';
 import '@/styles/global.css';
 
 interface Props {
@@ -70,6 +71,7 @@ const ogImageURL = new URL(ogImage ?? `${basePath}images/banner.jpg`, Astro.site
     </main>
     <Footer />
     <MobileTabBar currentPath={Astro.url.pathname} />
+    <OnboardingBanner client:idle />
     <script is:inline define:vars={{ swURL }}>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

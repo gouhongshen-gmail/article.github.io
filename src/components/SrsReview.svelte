@@ -2,6 +2,8 @@
   import { onMount } from 'svelte';
   import { gradeCard, previewIntervals, formatInterval, type VocabCard as SrsCard } from '@lib/srs-engine';
   import { getDueCards, updateCard, addReviewLog, type VocabCard } from '@lib/vocab-store';
+  import { canReview, incrementTodayReviewCount, getTodayReviewCount, getDailyReviewLimit } from '@lib/limits';
+  import LimitModal from '@components/LimitModal.svelte';
 
   // Demo cards as fallback
   const demoCards: SrsCard[] = [
@@ -34,6 +36,7 @@
   let totalReviewed = $state(0);
   let loading = $state(true);
   let isDemoMode = $state(false);
+  let limitModalVisible = $state(false);
   let originalCards = $state<VocabCard[]>([]); // Store original cards for persistence
 
   let currentCard = $derived(cards[currentIndex]);
@@ -112,6 +115,15 @@
 
     if (quality >= 3) correctCount++;
     totalReviewed++;
+    
+    // Increment today's review count
+    incrementTodayReviewCount();
+
+    // Check if review limit reached
+    if (!canReview()) {
+      limitModalVisible = true;
+      return;
+    }
 
     // Slide out
     sliding = 'out';
@@ -159,6 +171,14 @@
 </script>
 
 <div class="srs-container">
+  <LimitModal
+    visible={limitModalVisible}
+    title="今日复习已达上限"
+    message={`You've completed ${getDailyReviewLimit()} reviews today. Upgrade to Pro for unlimited daily reviews!`}
+    ctaText="Upgrade to Pro"
+    ctaHref="/pricing"
+    onClose={() => { limitModalVisible = false; }}
+  />
   {#if loading}
     <!-- Loading State -->
     <div class="loading-state">

@@ -1,5 +1,7 @@
 <script>
-  import { saveWord, isWordSaved } from '@lib/vocab-store';
+  import { saveWord, isWordSaved, getWordCount } from '@lib/vocab-store';
+  import { canAddWord } from '@lib/limits';
+  import LimitModal from './LimitModal.svelte';
 
   /** @type {{ hanzi: string; pinyin: string; gloss: string } | null} */
   let word = $state(null);
@@ -10,6 +12,7 @@
   let popoverStyle = $state('');
   let saving = $state(false);
   let saved = $state(false);
+  let limitModalVisible = $state(false);
 
   function updateMediaQuery() {
     isMobile = window.innerWidth < 1024;
@@ -80,6 +83,13 @@
     if (!word || saving || saved) return;
     saving = true;
     try {
+      // Check word limit before saving
+      const currentCount = await getWordCount();
+      if (!canAddWord(currentCount)) {
+        limitModalVisible = true;
+        return;
+      }
+
       await saveWord({
         hanzi: word.hanzi,
         pinyin: word.pinyin,
@@ -118,6 +128,14 @@
 </script>
 
 {#if visible && word}
+  <LimitModal
+    visible={limitModalVisible}
+    title="你的免费词库已满"
+    message="Free accounts can save up to 50 words. Upgrade to Pro for unlimited vocabulary!"
+    ctaText="Upgrade to Pro"
+    ctaHref="/pricing"
+    onClose={() => { limitModalVisible = false; }}
+  />
   {#if isMobile}
     <!-- Mobile: backdrop + bottom sheet -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
