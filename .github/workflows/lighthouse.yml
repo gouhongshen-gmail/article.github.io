@@ -1,0 +1,41 @@
+name: Lighthouse CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    env:
+      CHRONOSINA_AUTH_BASE_URL: ${{ vars.CHRONOSINA_AUTH_BASE_URL }}
+      CHRONOSINA_FRONTEND_URL: ${{ vars.CHRONOSINA_FRONTEND_URL }}
+      CHRONOSINA_FREE_ARTICLE_LIMIT: ${{ vars.CHRONOSINA_FREE_ARTICLE_LIMIT }}
+      CHRONOSINA_MEDIA_BASE_URL: ${{ vars.CHRONOSINA_MEDIA_BASE_URL }}
+      CHRONOSINA_PAYMENT_BASE_URL: ${{ vars.CHRONOSINA_PAYMENT_BASE_URL }}
+      CHRONOSINA_SYNC_BASE_URL: ${{ vars.CHRONOSINA_SYNC_BASE_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v12
