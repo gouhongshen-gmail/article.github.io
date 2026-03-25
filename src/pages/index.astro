@@ -108,20 +108,10 @@ const demoSentences = [
       </div>
 
       <div class="hero__visual" aria-hidden="true">
-        <svg class="hero__glyph" viewBox="0 0 240 240" role="presentation">
-          <defs>
-            <clipPath id="reveal">
-              <rect class="reveal-rect" x="0" y="0" width="240" height="240" />
-            </clipPath>
-          </defs>
-          <path
-            class="glyph-fill"
-            clip-path="url(#reveal)"
-            d="M152.4 46.1H203.0L212.6 33.8Q228.0 46.5 228.0 50.0Q228.0 51.3 226.7 52.2L220.0 56.8V213.0H205.7V190.8H149.8V217.1H135.5V37.9Q145.7 42.6 152.4 46.1ZM149.8 52.2V184.8H205.7V52.2ZM79.8 58.6V109.1V113.9H102.5L114.3 97.4Q121.5 104.6 129.9 115.1L127.1 119.9H79.6Q79.1 133.6 76.6 144.9Q100.0 158.9 114.7 175.6Q126.7 188.8 126.7 197.8Q126.7 206.7 118.6 206.7Q113.7 206.7 111.2 201.0Q99.5 173.8 75.2 151.8Q63.1 202.0 15.9 227.3L12.0 222.2Q50.1 194.2 60.7 153.1Q64.2 138.0 65.3 119.9H15.4L12.5 113.9H65.5V109.3V58.6H48.7Q38.9 87.0 21.9 108.1L16.8 104.9Q38.0 65.9 43.4 12.0Q67.4 15.7 67.4 20.7Q67.4 23.7 57.5 26.3Q54.8 38.7 50.7 52.6H97.4L109.0 36.7Q119.0 46.6 124.4 54.0L122.1 58.6Z"
-          />
-          <line class="underline" x1="50" y1="235" x2="190" y2="235" pathLength="100" />
-        </svg>
-        <p class="hero__glyph-note">zhī · to know</p>
+        <div class="hero__calligraphy">
+          <span class="char char--large">龍</span><span class="char char--small">的</span><span class="char char--small">傳</span><span class="char char--large">說</span>
+        </div>
+        <p class="hero__glyph-note">lóng de chuán shuō · legend of the dragon</p>
       </div>
     </div>
   </section>
@@ -351,20 +341,45 @@ const demoSentences = [
     gap: var(--space-sm);
   }
 
+  @font-face {
+    font-family: 'LongCang';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/longcang-subset.woff2') format('woff2');
+    unicode-range: U+7684, U+50B3, U+8AAA, U+9F8D;
+  }
+
   .hero__glyph {
     width: min(100%, 280px);
     height: auto;
     overflow: visible;
   }
 
-  .glyph-fill {
-    fill: var(--color-ink);
+  .hero__calligraphy {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    font-family: 'LongCang', serif;
+    color: var(--color-ink);
+    line-height: 1;
+    gap: 0.05em;
+    opacity: 0;
+    animation: calligraphy-reveal 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) 0.3s forwards;
   }
 
-  .reveal-rect {
-    animation: reveal-sweep 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-    transform-origin: left;
-    transform: scaleX(0);
+  .char {
+    display: inline-block;
+  }
+
+  .char--large {
+    font-size: clamp(4.5rem, 12vw, 8rem);
+  }
+
+  .char--small {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    opacity: 0.7;
+    transform: translateY(0.15em);
   }
 
   .underline {
@@ -583,9 +598,16 @@ const demoSentences = [
     }
   }
 
-  @keyframes reveal-sweep {
+  @keyframes calligraphy-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.95);
+      filter: blur(4px);
+    }
     to {
-      transform: scaleX(1);
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
     }
   }
 
