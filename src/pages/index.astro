@@ -1,5 +1,27 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allStories = await getCollection('stories');
+const storyCount = allStories.length;
+
+// Count unique vocab terms (segments with gloss) across all stories
+const vocabSet = new Set<string>();
+for (const story of allStories) {
+  const matches = story.body?.matchAll(/- text: (.+)\n\s+gloss:/g) ?? [];
+  for (const m of matches) vocabSet.add(m[1].trim());
+}
+const vocabCount = vocabSet.size;
+
+// Dynasties referenced across stories
+const dynastyKeywords = ['Han', 'Tang', 'Song', 'Yuan', 'Ming', 'Qing', 'Qin', 'Sui', 'Zhou', 'Shang'];
+const dynastySet = new Set<string>();
+for (const story of allStories) {
+  for (const d of dynastyKeywords) {
+    if (story.body?.includes(d)) dynastySet.add(d);
+  }
+}
+const dynastyCount = dynastySet.size;
 
 const pageTitle = 'LongLore 龙知 — Learn Chinese Through History Stories';
 const pageDescription =
@@ -186,15 +208,15 @@ const demoSentences = [
   <section class="stats-strip">
     <div class="container stats-strip__grid">
       <div class="stat">
-        <span class="stat__number">12</span>
+        <span class="stat__number">{storyCount}</span>
         <span class="stat__label">Stories</span>
       </div>
       <div class="stat">
-        <span class="stat__number">800+</span>
+        <span class="stat__number">{vocabCount}+</span>
         <span class="stat__label">Words</span>
       </div>
       <div class="stat">
-        <span class="stat__number">4</span>
+        <span class="stat__number">{dynastyCount}</span>
         <span class="stat__label">Dynasties</span>
       </div>
     </div>

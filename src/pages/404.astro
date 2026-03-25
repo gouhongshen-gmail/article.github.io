@@ -1,0 +1,52 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page Not Found" description="The page you're looking for doesn't exist.">
+  <section class="not-found">
+    <div class="not-found__inner">
+      <span class="not-found__code">404</span>
+      <h1>迷路了？</h1>
+      <p>This page doesn't exist — but there's plenty of Chinese history to explore.</p>
+      <div class="not-found__actions">
+        <a href="/" class="cta cta--primary">← Back Home</a>
+        <a href="/stories" class="cta cta--secondary">Browse Stories</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+    padding: 2rem;
+  }
+  .not-found__inner {
+    max-width: 480px;
+  }
+  .not-found__code {
+    font-size: 6rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--color-accent, #b45309);
+    opacity: 0.25;
+  }
+  .not-found h1 {
+    font-size: 2rem;
+    margin: 0.5rem 0;
+  }
+  .not-found p {
+    color: var(--color-text-secondary, #6b7280);
+    margin-bottom: 2rem;
+  }
+  .not-found__actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+</style>
