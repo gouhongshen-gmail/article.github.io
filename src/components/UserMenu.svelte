@@ -1,9 +1,11 @@
 <script>
-  let isLoggedIn = $state(false);
+  import { logout, isLoggedIn } from '@lib/api';
+
+  let loggedIn = $state(false);
   let dropdownOpen = $state(false);
 
   $effect(() => {
-    isLoggedIn = document.cookie.split(';').some(c => c.trim().startsWith('ll_token='));
+    loggedIn = isLoggedIn();
   });
 
   function toggleDropdown() {
@@ -15,8 +17,13 @@
     dropdownOpen = false;
   }
 
-  function signOut() {
-    document.cookie = 'll_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  async function handleSignOut() {
+    try {
+      await logout();
+    } catch {
+      // If API call fails, still clear cookie locally
+      document.cookie = 'll_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    }
     window.location.href = '/';
   }
 
@@ -28,7 +35,7 @@
   });
 </script>
 
-{#if isLoggedIn}
+{#if loggedIn}
   <div class="user-menu">
     <button class="avatar" onclick={toggleDropdown} aria-label="User menu">
       U
@@ -38,7 +45,7 @@
         <a href="/dashboard" class="dropdown-item">Dashboard</a>
         <a href="/vocabulary" class="dropdown-item">My Vocabulary</a>
         <a href="/settings" class="dropdown-item">Settings</a>
-        <button class="dropdown-item sign-out" onclick={signOut}>Sign Out</button>
+        <button class="dropdown-item sign-out" onclick={handleSignOut}>Sign Out</button>
       </div>
     {/if}
   </div>

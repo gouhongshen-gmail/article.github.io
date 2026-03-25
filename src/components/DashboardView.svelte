@@ -1,4 +1,6 @@
 <script>
+  import { getStats, getDueCards, getAllWords } from '@lib/vocab-store';
+
   // Demo mode toggle — set to true for empty state, false for returning user
   let isNewUser = $state(false);
 
@@ -47,9 +49,28 @@
   ];
 
   let stats = $state(demoStats);
+  let isDemoMode = $state(true);
   let heatmap = $state(demoHeatmap);
   let continueStories = $state(demoContinueStories);
   let hoverTooltip = $state(null);
+
+  // Load real stats from IndexedDB
+  $effect(() => {
+    Promise.all([getStats(), getDueCards(), getAllWords()]).then(([statsResult, dueCards, allWords]) => {
+      if (allWords.length > 0) {
+        stats = {
+          ...stats,
+          wordsLearned: allWords.length,
+          wordsMastered: allWords.filter(w => w.stage === 'mastered').length,
+          wordsInPipeline: allWords.filter(w => w.stage !== 'mastered').length,
+          reviewsDueToday: dueCards.length,
+        };
+        isDemoMode = false;
+      }
+    }).catch(err => {
+      console.error('Failed to load stats from IndexedDB:', err);
+    });
+  });
 
   const hour = new Date().getHours();
 
@@ -134,7 +155,12 @@
   {:else}
     <!-- ① Greeting Header -->
     <header class="greeting">
-      <span class="greeting-text">{greeting}</span>
+      <div class="greeting-left">
+        <span class="greeting-text">{greeting}</span>
+        {#if isDemoMode}
+          <span class="demo-badge-inline">Demo data</span>
+        {/if}
+      </div>
       <div class="streak-display">
         <span class="streak-icon">🔥</span>
         <span class="streak-number">{stats.streak}</span>
@@ -361,12 +387,31 @@
     padding: var(--space-lg) 0 var(--space-md);
   }
 
+  .greeting-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
   .greeting-text {
     font-family: var(--font-display-cn);
     font-size: var(--text-h1);
     font-weight: 700;
     color: var(--color-text-primary);
     line-height: var(--lh-h1-cjk);
+  }
+
+  .demo-badge-inline {
+    display: inline-block;
+    background: rgba(212, 175, 55, 0.15);
+    color: #8b7326;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(212, 175, 55, 0.3);
   }
 
   .streak-display {

@@ -1,4 +1,5 @@
 <script>
+  import { logout } from '@lib/api';
   import { onMount } from 'svelte';
 
   let readingMode = 'guided';
@@ -94,7 +95,7 @@
 
   async function handleSignOut() {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await logout();
       window.location.href = '/';
     } catch (error) {
       console.error('Sign out failed:', error);

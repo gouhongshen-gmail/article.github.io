@@ -1,164 +1,189 @@
 <script>
-  import { onMount } from 'svelte';
+  import { getAllWords } from '@lib/vocab-store';
 
-  // Demo vocabulary data
+  // Demo vocabulary data (fallback)
   const demoWords = [
     {
       id: 1,
       hanzi: '故事',
       pinyin: 'gùshì',
-      gloss: 'story, tale',
-      stage: 'mastered',
-      storyTitle: 'The Lost Garden',
-      nextReview: new Date(Date.now() - 86400000 * 3),
-      context: '这个故事很有趣。(This story is very interesting.)',
+      meaning: 'story, tale',
+      level: 'mastered',
+      story: 'The Lost Garden',
+      nextReview: new Date(Date.now() - 86400000 * 3).toLocaleDateString(),
+      saved: true,
     },
     {
       id: 2,
       hanzi: '古老',
       pinyin: 'gǔlǎo',
-      gloss: 'ancient, old',
-      stage: 'mature',
-      storyTitle: 'The Lost Garden',
-      nextReview: new Date(Date.now() + 86400000 * 2),
-      context: '这是一座古老的城堡。(This is an ancient castle.)',
+      meaning: 'ancient, old',
+      level: 'mature',
+      story: 'The Lost Garden',
+      nextReview: new Date(Date.now() + 86400000 * 2).toLocaleDateString(),
+      saved: true,
     },
     {
       id: 3,
       hanzi: '花园',
       pinyin: 'huāyuán',
-      gloss: 'garden',
-      stage: 'learning',
-      storyTitle: 'The Lost Garden',
-      nextReview: new Date(Date.now() - 86400000),
-      context: '她在花园里散步。(She walks in the garden.)',
+      meaning: 'garden',
+      level: 'learning',
+      story: 'The Lost Garden',
+      nextReview: new Date(Date.now() - 86400000).toLocaleDateString(),
+      saved: true,
     },
     {
       id: 4,
       hanzi: '秘密',
       pinyin: 'mìmì',
-      gloss: 'secret, mystery',
-      stage: 'learning',
-      storyTitle: 'The Lost Garden',
-      nextReview: new Date(Date.now() + 43200000),
-      context: '这个秘密很重要。(This secret is important.)',
+      meaning: 'secret, mystery',
+      level: 'learning',
+      story: 'The Lost Garden',
+      nextReview: new Date(Date.now() + 43200000).toLocaleDateString(),
+      saved: true,
     },
     {
       id: 5,
       hanzi: '发现',
       pinyin: 'fāxiàn',
-      gloss: 'discover, find',
-      stage: 'new',
-      storyTitle: 'The Lost Garden',
-      nextReview: new Date(Date.now() + 86400000 * 7),
-      context: '她发现了一扇隐藏的门。(She discovered a hidden door.)',
+      meaning: 'discover, find',
+      level: 'new',
+      story: 'The Lost Garden',
+      nextReview: new Date(Date.now() + 86400000 * 7).toLocaleDateString(),
+      saved: true,
     },
     {
       id: 6,
       hanzi: '冒险',
       pinyin: 'màoxiǎn',
-      gloss: 'adventure, risk',
-      stage: 'new',
-      storyTitle: 'The Lost Garden',
-      nextReview: new Date(Date.now() + 86400000 * 7),
-      context: '开始了一场新的冒险。(Beginning a new adventure.)',
+      meaning: 'adventure, risk',
+      level: 'new',
+      story: 'The Lost Garden',
+      nextReview: new Date(Date.now() + 86400000 * 7).toLocaleDateString(),
+      saved: true,
     },
     {
       id: 7,
       hanzi: '忽然',
       pinyin: 'hūrán',
-      gloss: 'suddenly, all at once',
-      stage: 'mature',
-      storyTitle: 'Whispers in the Night',
-      nextReview: new Date(Date.now() - 86400000 * 5),
-      context: '忽然，她听到了一个声音。(Suddenly, she heard a sound.)',
+      meaning: 'suddenly, all at once',
+      level: 'mature',
+      story: 'Whispers in the Night',
+      nextReview: new Date(Date.now() - 86400000 * 5).toLocaleDateString(),
+      saved: true,
     },
     {
       id: 8,
       hanzi: '光线',
       pinyin: 'guāngxiàn',
-      gloss: 'light ray, beam',
-      stage: 'learning',
-      storyTitle: 'Whispers in the Night',
-      nextReview: new Date(Date.now() + 86400000 * 1),
-      context: '月光线照进房间。(Moonlight beamed into the room.)',
+      meaning: 'light ray, beam',
+      level: 'learning',
+      story: 'Whispers in the Night',
+      nextReview: new Date(Date.now() + 86400000 * 1).toLocaleDateString(),
+      saved: true,
     },
     {
       id: 9,
       hanzi: '呼吸',
       pinyin: 'hūxī',
-      gloss: 'breath, breathe',
-      stage: 'mastered',
-      storyTitle: 'Whispers in the Night',
-      nextReview: new Date(Date.now() - 86400000 * 10),
-      context: '深深呼吸。(Breathe deeply.)',
+      meaning: 'breath, breathe',
+      level: 'mastered',
+      story: 'Whispers in the Night',
+      nextReview: new Date(Date.now() - 86400000 * 10).toLocaleDateString(),
+      saved: true,
     },
     {
       id: 10,
       hanzi: '温暖',
       pinyin: 'nuǎnhuo',
-      gloss: 'warm, warmth',
-      stage: 'new',
-      storyTitle: 'Whispers in the Night',
-      nextReview: new Date(Date.now() + 86400000 * 7),
-      context: '感到温暖的怀抱。(Feel the warm embrace.)',
+      meaning: 'warm, warmth',
+      level: 'new',
+      story: 'Whispers in the Night',
+      nextReview: new Date(Date.now() + 86400000 * 7).toLocaleDateString(),
+      saved: true,
     },
     {
       id: 11,
       hanzi: '记忆',
       pinyin: 'jìyì',
-      gloss: 'memory, remembrance',
-      stage: 'mastered',
-      storyTitle: 'Echoes of the Past',
-      nextReview: new Date(Date.now() - 86400000 * 20),
-      context: '童年的记忆依然清晰。(Childhood memories remain clear.)',
+      meaning: 'memory, remembrance',
+      level: 'mastered',
+      story: 'Echoes of the Past',
+      nextReview: new Date(Date.now() - 86400000 * 20).toLocaleDateString(),
+      saved: true,
     },
     {
       id: 12,
       hanzi: '失去',
       pinyin: 'shīqù',
-      gloss: 'lose, loss',
-      stage: 'learning',
-      storyTitle: 'Echoes of the Past',
-      nextReview: new Date(Date.now() + 86400000 * 3),
-      context: '我失去了我最珍贵的东西。(I lost what I cherished most.)',
+      meaning: 'lose, loss',
+      level: 'learning',
+      story: 'Echoes of the Past',
+      nextReview: new Date(Date.now() + 86400000 * 3).toLocaleDateString(),
+      saved: true,
     },
     {
       id: 13,
       hanzi: '承诺',
       pinyin: 'chéngnuò',
-      gloss: 'promise, commitment',
-      stage: 'new',
-      storyTitle: 'Echoes of the Past',
-      nextReview: new Date(Date.now() + 86400000 * 7),
-      context: '她守住了她的承诺。(She kept her promise.)',
+      meaning: 'promise, commitment',
+      level: 'new',
+      story: 'Echoes of the Past',
+      nextReview: new Date(Date.now() + 86400000 * 7).toLocaleDateString(),
+      saved: true,
     },
     {
       id: 14,
       hanzi: '勇气',
       pinyin: 'yǒngqì',
-      gloss: 'courage, bravery',
-      stage: 'mature',
-      storyTitle: 'Echoes of the Past',
-      nextReview: new Date(Date.now() - 86400000 * 7),
-      context: '需要很多勇气才能前进。(It takes much courage to move forward.)',
+      meaning: 'courage, bravery',
+      level: 'mature',
+      story: 'Echoes of the Past',
+      nextReview: new Date(Date.now() - 86400000 * 7).toLocaleDateString(),
+      saved: true,
     },
     {
       id: 15,
       hanzi: '希望',
       pinyin: 'xīwàng',
-      gloss: 'hope, wish',
-      stage: 'mastered',
-      storyTitle: 'Echoes of the Past',
-      nextReview: new Date(Date.now() - 86400000 * 15),
-      context: '心中充满希望。(Heart full of hope.)',
+      meaning: 'hope, wish',
+      level: 'mastered',
+      story: 'Echoes of the Past',
+      nextReview: new Date(Date.now() - 86400000 * 15).toLocaleDateString(),
+      saved: true,
     },
   ];
 
   let words = $state(demoWords);
+  let isLoading = $state(true);
+  let isDemoMode = $state(true);
   let selectedStage = $state('all');
   let searchQuery = $state('');
   let expandedId = $state(null);
+
+  // Load words from IndexedDB on mount
+  $effect(() => {
+    getAllWords().then(dbWords => {
+      if (dbWords.length > 0) {
+        words = dbWords.map(w => ({
+          id: w.id,
+          hanzi: w.hanzi,
+          pinyin: w.pinyin,
+          meaning: w.gloss,
+          level: w.stage || 'new',
+          story: w.storyTitle || 'Unknown',
+          nextReview: w.nextReview ? new Date(w.nextReview).toLocaleDateString() : 'Not scheduled',
+          saved: true,
+        }));
+        isDemoMode = false;
+      }
+      isLoading = false;
+    }).catch(err => {
+      console.error('Failed to load words from IndexedDB:', err);
+      isLoading = false;
+    });
+  });
 
   const stages = ['all', 'new', 'learning', 'mature', 'mastered'];
 
@@ -182,7 +207,7 @@
 
     // Filter by stage
     if (selectedStage !== 'all') {
-      result = result.filter((w) => w.stage === selectedStage);
+      result = result.filter((w) => w.level === selectedStage);
     }
 
     // Filter by search query
@@ -192,7 +217,7 @@
         (w) =>
           w.hanzi.includes(query) ||
           w.pinyin.toLowerCase().includes(query) ||
-          w.gloss.toLowerCase().includes(query)
+          w.meaning.toLowerCase().includes(query)
       );
     }
 
@@ -202,7 +227,7 @@
   // Calculate stats
   let stats = $derived.by(() => {
     const total = words.length;
-    const mastered = words.filter((w) => w.stage === 'mastered').length;
+    const mastered = words.filter((w) => w.level === 'mastered').length;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const dueTodayCount = words.filter((w) => {
@@ -219,10 +244,10 @@
   });
 
   // Format date for display
-  function formatNextReview(date) {
+  function formatNextReview(dateStr) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const nextDate = new Date(date);
+    const nextDate = new Date(dateStr);
     nextDate.setHours(0, 0, 0, 0);
 
     const diffTime = nextDate - today;
@@ -243,9 +268,6 @@
     expandedId = expandedId === id ? null : id;
   }
 
-  onMount(() => {
-    // Component mounted
-  });
 </script>
 
 <div class="vocabulary-list">
@@ -294,11 +316,22 @@
   </div>
 
   <!-- Word List -->
-  {#if filteredWords.length === 0}
+  {#if isLoading}
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading your vocabulary...</p>
+    </div>
+  {:else if filteredWords.length === 0}
     <div class="empty-state">
-      <p>No words saved yet. Tap vocabulary words while reading stories to add them here.</p>
+      <p>{isDemoMode ? 'These are sample words — save words from stories to build your vocabulary' : 'No words saved yet. Tap vocabulary words while reading stories to add them here.'}</p>
     </div>
   {:else}
+    {#if isDemoMode}
+      <div class="demo-mode-banner">
+        <span class="demo-badge">Demo data</span>
+        <p>These are sample words — save words from stories to build your vocabulary</p>
+      </div>
+    {/if}
     <div class="word-list">
       {#each filteredWords as word (word.id)}
         <div
@@ -314,12 +347,12 @@
             </div>
 
             <div class="word-right">
-              <div class="gloss">{word.gloss}</div>
-              <div class="stage-indicator" style="background-color: {stageColors[word.stage]}" />
+              <div class="gloss">{word.meaning}</div>
+              <div class="stage-indicator" style="background-color: {stageColors[word.level]}" />
             </div>
 
             <div class="word-bottom">
-              <div class="story-source">{word.storyTitle}</div>
+              <div class="story-source">{word.story}</div>
               <div class="next-review">{formatNextReview(word.nextReview)}</div>
             </div>
           </div>
@@ -327,11 +360,6 @@
           <!-- Expanded View -->
           {#if expandedId === word.id}
             <div class="expanded-details">
-              <div class="detail-section">
-                <h4>Context</h4>
-                <p class="context-text">{word.context}</p>
-              </div>
-
               <div class="detail-section">
                 <h4>Review History</h4>
                 <div class="review-placeholder">
@@ -341,8 +369,8 @@
 
               <div class="detail-section">
                 <h4>Stage</h4>
-                <div class="stage-badge" style="background-color: {stageColors[word.stage]}">
-                  {stageLabels[word.stage]}
+                <div class="stage-badge" style="background-color: {stageColors[word.level]}">
+                  {stageLabels[word.level]}
                 </div>
               </div>
             </div>
@@ -474,6 +502,68 @@
   .empty-state p {
     font-size: 14px;
     line-height: 1.6;
+  }
+
+  /* Loading State */
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    gap: 16px;
+    color: var(--color-text-secondary);
+  }
+
+  .loading-state p {
+    font-size: 14px;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-jade, #5A8C6F);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Demo Mode Banner */
+  .demo-mode-banner {
+    background: rgba(212, 175, 55, 0.08);
+    border-left: 3px solid var(--color-gold-leaf, #D4AF37);
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .demo-badge {
+    display: inline-block;
+    background: var(--color-gold-leaf, #D4AF37);
+    color: #2a2a2a;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+
+  .demo-mode-banner p {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.4;
   }
 
   /* Word List */
