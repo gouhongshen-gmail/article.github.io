@@ -205,6 +205,32 @@
 }
 
 /* --------------------------------------------------------------------------
+   StoryReader Integration
+   Smooth content handoff between static .cnlesson blocks and the
+   interactive StoryReader component.  The .sr-source wrapper holds
+   the original slotted content; StoryReader adds .sr-source--hidden
+   once it has parsed the DOM.
+   -------------------------------------------------------------------------- */
+
+/* Default: content is visible and ready to fade */
+.sr-source {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* Hidden state: fade out then collapse to avoid layout jump.
+   The StoryReader component also applies display:none via scoped
+   styles; this global rule provides the smooth opacity layer. */
+.sr-source--hidden {
+  opacity: 0;
+  overflow: hidden;
+  height: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
    Reading Mode — Sepia Overrides
    -------------------------------------------------------------------------- */
 [data-reading-mode="sepia"] {
@@ -231,5 +257,10 @@
 }
 
 [data-theme="dark"][data-reading-mode="sepia"] .article {
+  line-height: 1.9;
+}
+
+/* Sepia: relax line-height inside StoryReader (mirrors .article treatment) */
+[data-reading-mode="sepia"] .sr-reader {
   line-height: 1.9;
 }

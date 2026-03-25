@@ -1,12 +1,14 @@
 <script>
+  import { untrack } from 'svelte';
+
   const FONT_SIZE_KEY = 'longlore_font_size';
   const READING_MODE_KEY = 'longlore_reading_mode';
+  const READING_DIR_KEY = 'longlore_reading_direction';
   const FONT_MIN = 14;
   const FONT_MAX = 24;
   const FONT_STEP = 2;
   const FONT_DEFAULT = 16;
 
-  // Reading modes
   const MODES = {
     guided: { pinyin: true, translations: true },
     assisted: { pinyin: false, translations: true },
@@ -18,6 +20,13 @@
   let fontSize = $state(FONT_DEFAULT);
   let readingMode = $state('guided');
   let sepiaMode = $state(false);
+  let readingDirection = $state('en-first');
+
+  let modeLabel = $derived(
+    ({ guided: '引导', assisted: '辅助', immersive: '沉浸' })[readingMode] ?? '模式'
+  );
+
+  let isZhFirst = $derived(readingDirection === 'zh-first');
 
   function loadPrefs() {
     try {
@@ -33,6 +42,11 @@
         showPinyin = mode.pinyin;
         showTranslations = mode.translations;
       }
+
+      const savedDir = localStorage.getItem(READING_DIR_KEY);
+      if (savedDir === 'en-first' || savedDir === 'zh-first') {
+        readingDirection = savedDir;
+      }
     } catch { /* ignore */ }
   }
 
@@ -40,23 +54,19 @@
     try {
       localStorage.setItem(FONT_SIZE_KEY, String(fontSize));
       localStorage.setItem(READING_MODE_KEY, readingMode);
+      localStorage.setItem(READING_DIR_KEY, readingDirection);
     } catch { /* ignore */ }
   }
 
   function applySettings() {
     const content = document.querySelector('.story-content');
     if (content) {
-      // Apply font size via CSS variable
       content.style.setProperty('--reading-font-size', `${fontSize}px`);
-
-      // Apply translations visibility
       content.setAttribute('data-translations', showTranslations ? 'visible' : 'hidden');
-
-      // Apply pinyin visibility
       content.setAttribute('data-pinyin', showPinyin ? 'visible' : 'hidden');
+      content.setAttribute('data-reading-direction', readingDirection);
     }
 
-    // Apply sepia mode to root
     if (sepiaMode) {
       document.documentElement.setAttribute('data-reading-mode', 'sepia');
     } else {
@@ -66,23 +76,18 @@
 
   function toggleTranslations() {
     showTranslations = !showTranslations;
-    // If we're in a specific mode, exit to manual control
     readingMode = null;
-    applySettings();
     savePrefs();
   }
 
   function togglePinyin() {
     showPinyin = !showPinyin;
-    // If we're in a specific mode, exit to manual control
     readingMode = null;
-    applySettings();
     savePrefs();
   }
 
   function toggleSepia() {
     sepiaMode = !sepiaMode;
-    applySettings();
   }
 
   function cycleReadingMode() {
@@ -95,35 +100,37 @@
     showPinyin = mode.pinyin;
     showTranslations = mode.translations;
 
-    applySettings();
     savePrefs();
   }
 
   function decreaseFont() {
     if (fontSize <= FONT_MIN) return;
     fontSize -= FONT_STEP;
-    applySettings();
     savePrefs();
   }
 
   function increaseFont() {
     if (fontSize >= FONT_MAX) return;
     fontSize += FONT_STEP;
-    applySettings();
     savePrefs();
   }
 
-  function getModeLabel() {
-    const labels = { guided: '引导', assisted: '辅助', immersive: '沉浸' };
-    return labels[readingMode] || '模式';
+  function toggleDirection() {
+    readingDirection = readingDirection === 'en-first' ? 'zh-first' : 'en-first';
+    savePrefs();
+    window.dispatchEvent(new CustomEvent('reading-direction-change', {
+      detail: { direction: readingDirection }
+    }));
   }
 
-  // Initialize on mount
+  // Load preferences once on mount (untracked to avoid re-triggering)
   $effect(() => {
-    if (typeof window !== 'undefined') {
-      loadPrefs();
-      applySettings();
-    }
+    untrack(() => loadPrefs());
+  });
+
+  // Apply settings reactively whenever state changes
+  $effect(() => {
+    applySettings();
   });
 </script>
 
@@ -135,9 +142,9 @@
       class:active={readingMode}
       onclick={cycleReadingMode}
       title="Click to cycle through reading modes: Guided → Assisted → Immersive"
-      aria-label="Reading mode: {getModeLabel()}"
+      aria-label="Reading mode: {modeLabel}"
     >
-      {getModeLabel()}
+      {modeLabel}
     </button>
   </div>
 
@@ -165,6 +172,22 @@
       title="Show/hide pinyin annotations"
     >
       拼音
+    </button>
+  </div>
+
+  <div class="toolbar-divider"></div>
+
+  <!-- Reading Direction Toggle -->
+  <div class="toolbar-group">
+    <button
+      class="toolbar-btn toggle-btn"
+      class:active={isZhFirst}
+      onclick={toggleDirection}
+      aria-pressed={isZhFirst}
+      aria-label={isZhFirst ? 'Switch to English-first reading' : 'Switch to Chinese-first reading'}
+      title="Toggle reading direction between English-first and Chinese-first"
+    >
+      EN↔中
     </button>
   </div>
 
