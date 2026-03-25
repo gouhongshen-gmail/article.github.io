@@ -5,6 +5,7 @@ import WordPopover from '@components/WordPopover.svelte';
 import ReadingToolbar from '@components/ReadingToolbar.svelte';
 import StoryCompletion from '@components/StoryCompletion.svelte';
 import SectionNav from '@components/SectionNav.svelte';
+import StoryReader from '@components/StoryReader.svelte';
 
 interface Props {
   title: string;
@@ -94,7 +95,9 @@ const articleSchema = {
       </header>
 
       <article class="story-content">
-        <slot />
+        <StoryReader client:load>
+          <slot />
+        </StoryReader>
       </article>
 
       <StoryCompletion

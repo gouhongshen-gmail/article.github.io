@@ -46,19 +46,25 @@ function renderSegment(seg) {
   return `<span>${text}</span>`;
 }
 
-function renderPair(item) {
+function renderPair(item, blockIdx, sentIdx) {
+  const id = item.id || `s${blockIdx}-${sentIdx}`;
   const segments = item.segments.map(renderSegment).join('');
   const en = escapeHtml(item.en.trim());
   return [
-    '<div class="cnlesson-pair">',
+    `<div class="cnlesson-pair" data-sentence-id="${id}">`,
     `  <p class="cnlesson-zh" lang="zh-CN">${segments}</p>`,
     `  <p class="cnlesson-en" lang="en">${en}</p>`,
     '</div>',
   ].join('\n');
 }
 
+// Track block index across tree for unique IDs
+let blockCounter = 0;
+
 export default function remarkCnlesson() {
   return (tree) => {
+    blockCounter = 0;
+
     visit(tree, 'code', (node, index, parent) => {
       if (node.lang !== 'cnlesson') return;
 
@@ -72,8 +78,9 @@ export default function remarkCnlesson() {
 
       sentences.forEach((item, i) => validateSentence(item, i));
 
-      const inner = sentences.map(renderPair).join('\n');
-      const html = `<div class="cnlesson">\n${inner}\n</div>`;
+      const bi = blockCounter++;
+      const inner = sentences.map((s, si) => renderPair(s, bi, si)).join('\n');
+      const html = `<div class="cnlesson" data-block="${bi}">\n${inner}\n</div>`;
 
       parent.children[index] = { type: 'html', value: html };
     });
