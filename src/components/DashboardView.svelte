@@ -147,7 +147,7 @@
     <div class="empty-state">
       <div class="empty-state-content">
         <span class="empty-state-icon">🐉</span>
-        <h2 class="empty-state-heading">Welcome to LongLore!</h2>
+        <h2 class="empty-state-heading">Welcome to LoongLore!</h2>
         <p class="empty-state-message">Start reading stories to build your vocabulary.</p>
         <a href="/stories" class="btn-primary btn-large">Explore Stories →</a>
       </div>

@@ -1,5 +1,5 @@
 /**
- * LongLore 龙知 — IndexedDB Vocabulary Store
+ * LoongLore — IndexedDB Vocabulary Store
  * Stores saved words, review cards, and pending sync queue.
  * All data is local-first; syncs to server when online.
  */

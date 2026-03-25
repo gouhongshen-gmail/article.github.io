@@ -1,5 +1,5 @@
 /**
- * LongLore Free/Pro Limit Enforcement
+ * LoongLore Free/Pro Limit Enforcement
  * Utilities for checking and enforcing free vs pro user limits
  */
 
