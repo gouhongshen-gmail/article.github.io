@@ -22,28 +22,38 @@ function buildFrontendUrl(env, redirectPath, searchParams = {}) {
   return url.toString();
 }
 
-async function stripeRequest(env, path, body) {
-  if (!env.STRIPE_SECRET_KEY) {
-    throw new Error('STRIPE_SECRET_KEY is not configured.');
+async function creemRequest(env, method, path, body = null) {
+  if (!env.CREEM_API_KEY) {
+    throw new Error('CREEM_API_KEY is not configured.');
   }
 
-  const response = await fetch(`https://api.stripe.com${path}`, {
-    method : 'POST',
+  const options = {
+    method,
     headers: {
-      Authorization : `Bearer ${env.STRIPE_SECRET_KEY}`,
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: body.toString()
-  });
+      'x-api-key'  : env.CREEM_API_KEY,
+      'Content-Type': 'application/json'
+    }
+  };
+
+  if (body) {
+    options.body = JSON.stringify(body);
+  }
+
+  const base = env.CREEM_API_BASE || 'https://api.creem.io';
+  const response = await fetch(`${base}${path}`, options);
 
   if (!response.ok) {
-    throw new Error(`Stripe API request failed: ${await response.text()}`);
+    throw new Error(`Creem API request failed: ${await response.text()}`);
   }
 
   return response.json();
 }
 
-async function hmacHex(secret, value) {
+async function verifyCreemSignature(payload, signature, secret) {
+  if (!signature || !secret) {
+    return false;
+  }
+
   const key = await crypto.subtle.importKey(
     'raw',
     encoder.encode(secret),
@@ -51,31 +61,22 @@ async function hmacHex(secret, value) {
     false,
     ['sign']
   );
-  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(value));
-
-  return Array.from(new Uint8Array(signature))
-    .map((byte) => byte.toString(16).padStart(2, '0'))
+  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
+  const computed = Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
-}
 
-async function verifyStripeSignature(signatureHeader, payload, secret) {
-  if (!signatureHeader || !secret) {
+  if (computed.length !== signature.length) {
     return false;
   }
 
-  const items = signatureHeader.split(',').map((entry) => entry.trim());
-  const timestamp = items.find((item) => item.startsWith('t='))?.slice(2);
-  const signatures = items
-    .filter((item) => item.startsWith('v1='))
-    .map((item) => item.slice(3));
-
-  if (!timestamp || !signatures.length) {
-    return false;
+  // Constant-time comparison
+  let mismatch = 0;
+  for (let i = 0; i < computed.length; i++) {
+    mismatch |= computed.charCodeAt(i) ^ signature.charCodeAt(i);
   }
 
-  const expected = await hmacHex(secret, `${timestamp}.${payload}`);
-  const ageSeconds = Math.abs(Math.floor(Date.now() / 1000) - Number(timestamp));
-  return ageSeconds <= 300 && signatures.includes(expected);
+  return mismatch === 0;
 }
 
 async function createCheckout(request, env) {
@@ -83,30 +84,23 @@ async function createCheckout(request, env) {
     const auth = await readAuth(request, env);
     const body = await readJson(request);
     const plan = body.plan === 'yearly' ? 'yearly' : 'monthly';
-    const priceId = plan === 'yearly' ? env.STRIPE_PRICE_YEARLY : env.STRIPE_PRICE_MONTHLY;
+    const productId = plan === 'yearly' ? env.CREEM_PRODUCT_YEARLY : env.CREEM_PRODUCT_MONTHLY;
     const redirectPath = body.redirectPath || '/';
 
-    if (!priceId) {
-      throw new Error(`Missing Stripe price configuration for ${plan}.`);
+    if (!productId || productId.includes('placeholder')) {
+      throw new Error(`Missing Creem product configuration for ${plan}.`);
     }
 
-    const form = new URLSearchParams();
-    form.set('mode', 'subscription');
-    form.set('client_reference_id', auth.user.id);
-    form.set('customer_email', auth.user.email);
-    form.set('success_url', buildFrontendUrl(env, redirectPath, { checkout: 'success' }));
-    form.set('cancel_url', buildFrontendUrl(env, redirectPath, { checkout: 'cancelled' }));
-    form.set('line_items[0][price]', priceId);
-    form.set('line_items[0][quantity]', '1');
-    form.set('metadata[userId]', auth.user.id);
-    form.set('metadata[plan]', plan);
-    form.set('subscription_data[metadata][userId]', auth.user.id);
-    form.set('subscription_data[metadata][plan]', plan);
+    const checkout = await creemRequest(env, 'POST', '/v1/checkouts', {
+      product_id : productId,
+      success_url: buildFrontendUrl(env, redirectPath, { checkout: 'success' }),
+      customer   : { email: auth.user.email },
+      metadata   : { userId: auth.user.id, plan }
+    });
 
-    const session = await stripeRequest(env, '/v1/checkout/sessions', form);
     return jsonResponse({
-      sessionId: session.id,
-      url      : session.url
+      checkoutId: checkout.id,
+      url       : checkout.checkout_url
     }, { status: 200 }, request, env);
   } catch (error) {
     return errorResponse(error.message || 'Failed to create checkout session.', 401, request, env);
@@ -120,10 +114,10 @@ async function getPlans(request, env) {
       tier    : 'free'
     },
     pro: {
-      monthlyPriceId: env.STRIPE_PRICE_MONTHLY || '',
-      yearlyPriceId : env.STRIPE_PRICE_YEARLY || '',
-      features      : ['Unlimited articles', 'Cross-device sync', 'Advanced statistics'],
-      tier          : 'pro'
+      monthlyProductId: env.CREEM_PRODUCT_MONTHLY || '',
+      yearlyProductId : env.CREEM_PRODUCT_YEARLY || '',
+      features        : ['Unlimited articles', 'Cross-device sync', 'Advanced statistics'],
+      tier            : 'pro'
     }
   }, { status: 200 }, request, env);
 }
@@ -137,44 +131,80 @@ async function recordBillingEvent(env, event, userId, customerId) {
     event.id,
     userId || null,
     customerId || null,
-    event.type,
+    event.eventType || event.type || 'unknown',
     JSON.stringify(event)
   ).run();
 }
 
 async function handleWebhook(request, env) {
-  const signature = request.headers.get('stripe-signature');
+  const signature = request.headers.get('creem-signature');
   const body = await request.text();
-  const isValid = await verifyStripeSignature(signature, body, env.STRIPE_WEBHOOK_SECRET);
+  const isValid = await verifyCreemSignature(body, signature, env.CREEM_WEBHOOK_SECRET);
 
   if (!isValid) {
     return textResponse('invalid signature', { status: 400 }, request, env);
   }
 
   const event = JSON.parse(body);
-  const payload = event.data?.object || {};
-  const customerId = payload.customer || null;
-  const userId = payload.metadata?.userId || payload.client_reference_id || null;
+  const payload = event.object || {};
+  const customerId = payload.customer?.id || null;
+  const userId = payload.metadata?.userId || null;
 
   await recordBillingEvent(env, event, userId, customerId);
 
-  if (event.type === 'checkout.session.completed') {
-    await env.DB.prepare(`
-      UPDATE users
-      SET tier = ?, stripe_customer_id = ?, updated_at = ?
-      WHERE id = ?
-    `).bind('pro', customerId, nowIso(), userId).run();
-  }
+  const grantEvents = ['subscription.active', 'subscription.paid', 'subscription.trialing'];
+  const revokeEvents = ['subscription.expired', 'subscription.paused'];
 
-  if (event.type === 'customer.subscription.deleted') {
+  if (event.eventType === 'checkout.completed' && userId) {
     await env.DB.prepare(`
       UPDATE users
       SET tier = ?, updated_at = ?
-      WHERE stripe_customer_id = ?
-    `).bind('free', nowIso(), customerId).run();
+      WHERE id = ?
+    `).bind('pro', nowIso(), userId).run();
+  }
+
+  if (grantEvents.includes(event.eventType) && userId) {
+    await env.DB.prepare(`
+      UPDATE users
+      SET tier = ?, updated_at = ?
+      WHERE id = ?
+    `).bind('pro', nowIso(), userId).run();
+  }
+
+  if (revokeEvents.includes(event.eventType)) {
+    const target = userId || customerId;
+    if (target) {
+      const col = userId ? 'id' : 'stripe_customer_id';
+      await env.DB.prepare(`
+        UPDATE users
+        SET tier = ?, updated_at = ?
+        WHERE ${col} = ?
+      `).bind('free', nowIso(), target).run();
+    }
   }
 
   return textResponse('ok', { status: 200 }, request, env);
+}
+
+async function createPortal(request, env) {
+  try {
+    const auth = await readAuth(request, env);
+    const user = await env.DB.prepare(
+      'SELECT stripe_customer_id FROM users WHERE id = ?'
+    ).bind(auth.user.id).first();
+
+    if (!user?.stripe_customer_id) {
+      return errorResponse('No billing account found.', 404, request, env);
+    }
+
+    const portal = await creemRequest(env, 'POST', '/v1/customers/billing', {
+      customer_id: user.stripe_customer_id
+    });
+
+    return jsonResponse({ url: portal.url }, { status: 200 }, request, env);
+  } catch (error) {
+    return errorResponse(error.message || 'Failed to create portal.', 500, request, env);
+  }
 }
 
 export default {
@@ -195,6 +225,10 @@ export default {
 
     if (request.method === 'POST' && path === '/api/payment/checkout') {
       return createCheckout(request, env);
+    }
+
+    if (request.method === 'POST' && path === '/api/payment/portal') {
+      return createPortal(request, env);
     }
 
     if (request.method === 'POST' && path === '/webhook') {
