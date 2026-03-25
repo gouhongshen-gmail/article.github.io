@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>龍的傳說 - Hero Preview</title>
+<style>
+  @font-face {
+    font-family: 'ShouJin';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('./public/fonts/shoujin-subset.woff2') format('woff2');
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #f5f0e6;
+    font-family: system-ui, sans-serif;
+  }
+  
+  .preview {
+    text-align: center;
+    padding: 3rem;
+  }
+
+  .calligraphy {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    font-family: 'ShouJin', serif;
+    color: #2c2a27;
+    line-height: 1;
+    gap: 0.05em;
+    animation: calligraphy-reveal 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) 0.3s forwards;
+    opacity: 0;
+  }
+
+  .char { display: inline-block; }
+
+  .char--large {
+    font-size: 8rem;
+  }
+
+  .char--small {
+    font-size: 4rem;
+    opacity: 0.7;
+    transform: translateY(0.15em);
+  }
+
+  .note {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: #78716c;
+  }
+
+  @keyframes calligraphy-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.95);
+      filter: blur(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+  }
+
+  /* Dark mode */
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1917; }
+    .calligraphy { color: #e7e5e4; }
+    .note { color: #a8a29e; }
+  }
+
+  .label {
+    margin-top: 3rem;
+    font-size: 0.75rem;
+    color: #a0a0a0;
+  }
+</style>
+</head>
+<body>
+  <div class="preview">
+    <div class="calligraphy">
+      <span class="char char--large">龙</span>
+      <span class="char char--small">的</span>
+      <span class="char char--small">传</span>
+      <span class="char char--large">说</span>
+    </div>
+    <p class="note">lóng de chuán shuō · legend of the dragon</p>
+    <p class="label">Font: 方正瘦金书 (Shoujin) · Subset: 1,628 bytes</p>
+  </div>
+</body>
+</html>
