@@ -4,8 +4,8 @@ import {
   formatInterval,
   previewIntervals,
   getDueCards,
-  VocabCard,
 } from '../srs-engine';
+import type { VocabCard } from '../srs-engine';
 
 describe('SRS Engine - SM-2 Algorithm', () => {
   let testCard: VocabCard;

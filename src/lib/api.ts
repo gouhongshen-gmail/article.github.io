@@ -1,8 +1,10 @@
 // Cloudflare Worker base URLs
 const AUTH_BASE = import.meta.env.PUBLIC_AUTH_BASE_URL || 'https://chronosina-auth.gouhongshen.workers.dev';
 const SYNC_BASE = import.meta.env.PUBLIC_SYNC_BASE_URL || 'https://chronosina-sync.gouhongshen.workers.dev';
-const PAYMENT_BASE = import.meta.env.PUBLIC_PAYMENT_BASE_URL || 'https://chronosina-payment.gouhongshen.workers.dev';
-const MEDIA_BASE = import.meta.env.PUBLIC_MEDIA_BASE_URL || 'https://chronosina-media.gouhongshen.workers.dev';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _PAYMENT_BASE = import.meta.env.PUBLIC_PAYMENT_BASE_URL || 'https://chronosina-payment.gouhongshen.workers.dev';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _MEDIA_BASE = import.meta.env.PUBLIC_MEDIA_BASE_URL || 'https://chronosina-media.gouhongshen.workers.dev';
 
 // ============================================================================
 // Auth Helpers
