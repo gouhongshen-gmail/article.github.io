@@ -6,10 +6,10 @@ const stories = (await getCollection('stories')).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime()
 );
 
-const difficultyColor: Record<string, string> = {
-  beginner: 'var(--color-jade)',
-  intermediate: 'var(--color-gold-leaf)',
-  advanced: 'var(--color-vermillion)',
+const difficultyStyle: Record<string, string> = {
+  beginner: '--badge-bg: var(--color-jade)',
+  intermediate: '--badge-bg: var(--color-gold-leaf); --badge-fg: #3d2e00',
+  advanced: '--badge-bg: var(--color-vermillion)',
 };
 
 function formatDate(date: Date) {
@@ -21,7 +21,7 @@ function formatDate(date: Date) {
 }
 ---
 
-<BaseLayout title="Stories | LongLore 龙知">
+<BaseLayout title="Stories | LongLore 龙知" description="Browse Chinese history stories for all levels — from the Grand Canal to Zheng He's voyages. Each story includes pinyin, glosses, and spaced repetition vocabulary.">
   <main class="stories-page">
     <header class="stories-header">
       <h1 class="stories-title">Stories <span class="zh">故事</span></h1>
@@ -66,7 +66,7 @@ function formatDate(date: Date) {
                 <div class="card-top">
                   <span
                     class="badge"
-                    style={`--badge-bg: ${difficultyColor[story.data.difficulty]}`}
+                    style={difficultyStyle[story.data.difficulty]}
                   >
                     {story.data.difficulty.charAt(0).toUpperCase() +
                       story.data.difficulty.slice(1)}
@@ -273,7 +273,7 @@ function formatDate(date: Date) {
     padding: 0.15em 0.65em;
     border-radius: 999px;
     background: var(--badge-bg);
-    color: #fff;
+    color: var(--badge-fg, #fff);
     margin-bottom: var(--space-sm);
   }
 
