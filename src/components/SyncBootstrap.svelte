@@ -1,7 +1,8 @@
 <script>
   import { syncNotebook } from '@lib/notebook-sync';
 
-  let syncing = $state(false);
+  // Plain variable (not $state) to avoid reactive loop in $effect
+  let syncing = false;
 
   async function runSync(force = false) {
     if (syncing) return;
@@ -16,12 +17,12 @@
   }
 
   $effect(() => {
-    void runSync(false);
+    runSync(false);
 
-    const onOnline = () => void runSync(true);
+    const onOnline = () => runSync(true);
     const onVisibility = () => {
       if (document.visibilityState === 'visible') {
-        void runSync(false);
+        runSync(false);
       }
     };
 
