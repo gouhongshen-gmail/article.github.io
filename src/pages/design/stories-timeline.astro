@@ -1,0 +1,484 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+const difficultyMeta = {
+  beginner: { label: 'Beginner' },
+  intermediate: { label: 'Intermediate' },
+  advanced: { label: 'Advanced' },
+} as const;
+
+type Difficulty = keyof typeof difficultyMeta;
+
+const difficultyRank: Record<Difficulty, number> = {
+  beginner: 0,
+  intermediate: 1,
+  advanced: 2,
+};
+
+const storyThemes: Record<
+  string,
+  { glyph: string; kicker: string; accent: string }
+> = {
+  'four-great-inventions': {
+    glyph: '工',
+    kicker: 'Innovation and craft',
+    accent: 'var(--color-gold-leaf)',
+  },
+  'grand-canal': {
+    glyph: '河',
+    kicker: 'Waterways and empire',
+    accent: 'var(--color-jade)',
+  },
+  'mandate-of-heaven': {
+    glyph: '天',
+    kicker: 'Ideas and legitimacy',
+    accent: 'var(--color-vermillion)',
+  },
+  'silk-road': {
+    glyph: '路',
+    kicker: 'Trade and exchange',
+    accent: 'var(--color-gold-leaf)',
+  },
+  'terracotta-warriors': {
+    glyph: '兵',
+    kicker: 'Power and afterlife',
+    accent: 'var(--color-vermillion)',
+  },
+  'zheng-he-voyages': {
+    glyph: '航',
+    kicker: 'Ocean routes',
+    accent: 'var(--color-jade)',
+  },
+};
+
+const stories = (await getCollection('stories'))
+  .map((entry) => {
+    const difficulty = entry.data.difficulty as Difficulty;
+    const plainText = (entry.body ?? '')
+      .replace(/^---[\s\S]*?---/, '')
+      .replace(/[`*_>#-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const wordCount = plainText ? plainText.split(' ').length : 0;
+    const readingTime = Math.max(3, Math.ceil(wordCount / 180));
+    const visibleTags = (entry.data.tags ?? []).filter(
+      (tag) => tag !== 'Language Learning'
+    );
+    const theme = storyThemes[entry.id] ?? {
+      glyph: '史',
+      kicker: 'Historical reading',
+      accent: 'var(--color-jade)',
+    };
+
+    return {
+      entry,
+      difficulty,
+      readingTime,
+      wordCount,
+      visibleTags,
+      theme,
+    };
+  })
+  .sort((a, b) => {
+    const difficultyCompare = difficultyRank[a.difficulty] - difficultyRank[b.difficulty];
+    if (difficultyCompare !== 0) return difficultyCompare;
+    return b.entry.data.date.getTime() - a.entry.data.date.getTime();
+  });
+---
+
+<BaseLayout
+  title="Stories Preview — Historical Scroll | LoongLore"
+  description="Concept preview: the stories archive reimagined as a historical scroll."
+>
+  <main class="timeline-page">
+    <nav class="preview-switcher" aria-label="Design preview switcher">
+      <span class="preview-switcher__label">Design previews</span>
+      <a href="/design/stories-timeline" aria-current="page">Historical scroll</a>
+      <a href="/design/stories-editorial">Editorial magazine</a>
+      <a href="/stories">Current live page</a>
+    </nav>
+
+    <header class="scroll-hero">
+      <div class="scroll-hero__copy">
+        <p class="scroll-kicker">Concept 02 · Historical scroll</p>
+        <h1>A reading archive told like a long unfolding journey.</h1>
+        <p class="scroll-lede">
+          Instead of a grid of cards, stories become stations along a ceremonial reading
+          path. The mood is more narrative, more atmospheric, and more distinctly
+          Chinese in rhythm.
+        </p>
+      </div>
+
+      <div class="scroll-hero__note">
+        <span class="scroll-hero__note-label">Creative intent</span>
+        <p>
+          Make the learner feel as if they are unrolling a curated history scroll:
+          each stop reveals a new world, not just another card.
+        </p>
+      </div>
+    </header>
+
+    <section class="scroll-path" aria-label="Historical scroll concept">
+      {stories.map((story, index) => (
+        <article
+          class={`scroll-node ${index % 2 === 0 ? 'scroll-node--left' : 'scroll-node--right'}`}
+        >
+          <div class="scroll-node__marker" aria-hidden="true">
+            <span class="scroll-node__step">{String(index + 1).padStart(2, '0')}</span>
+          </div>
+
+          <a
+            href={`/stories/${story.entry.id}`}
+            class="scroll-card"
+            style={`--accent: ${story.theme.accent};`}
+          >
+            <div class="scroll-card__glyph" aria-hidden="true">{story.theme.glyph}</div>
+            <div class="scroll-card__top">
+              <span class="scroll-card__level">
+                {difficultyMeta[story.difficulty].label}
+              </span>
+              <span class="scroll-card__meta">
+                {story.readingTime} min · {story.wordCount} words
+              </span>
+            </div>
+
+            <h2>{story.entry.data.title}</h2>
+            <p>{story.entry.data.excerpt || story.entry.data.description}</p>
+
+            <div class="scroll-card__footer">
+              <span>{story.theme.kicker}</span>
+              <span>{story.visibleTags.slice(0, 2).join(' · ')}</span>
+            </div>
+          </a>
+        </article>
+      ))}
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .timeline-page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md) var(--space-3xl);
+  }
+
+  .preview-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+  }
+
+  .preview-switcher__label {
+    font-size: var(--text-caption);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  .preview-switcher a {
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-border-subtle);
+    background: rgba(255, 255, 255, 0.45);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    font-size: var(--text-small);
+    transition:
+      transform var(--duration-fast) var(--ease-default),
+      border-color var(--duration-fast) var(--ease-default);
+  }
+
+  .preview-switcher a[aria-current='page'] {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-parchment);
+  }
+
+  .preview-switcher a:hover {
+    transform: translateY(-1px);
+    border-color: rgba(35, 122, 99, 0.3);
+  }
+
+  .scroll-hero {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+    gap: var(--space-xl);
+    margin-bottom: var(--space-2xl);
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border-radius: 32px;
+    border: 1px solid rgba(28, 25, 23, 0.08);
+    background:
+      radial-gradient(circle at top right, rgba(205, 164, 52, 0.16), transparent 34%),
+      radial-gradient(circle at bottom left, rgba(35, 122, 99, 0.12), transparent 28%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.18)),
+      var(--color-bg);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .scroll-kicker {
+    margin: 0 0 var(--space-sm);
+    font-size: var(--text-small);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-brand);
+  }
+
+  .scroll-hero h1 {
+    margin: 0 0 var(--space-md);
+    max-width: 12ch;
+    font-family: var(--font-display-en), serif;
+    font-size: clamp(2.5rem, 6vw, 4.25rem);
+    line-height: 1.02;
+    color: var(--color-text-primary);
+  }
+
+  .scroll-lede,
+  .scroll-hero__note p {
+    margin: 0;
+    line-height: 1.8;
+    color: var(--color-text-secondary);
+  }
+
+  .scroll-hero__note {
+    align-self: end;
+    padding: var(--space-lg);
+    border-radius: 24px;
+    border: 1px solid rgba(28, 25, 23, 0.08);
+    background: rgba(255, 255, 255, 0.56);
+  }
+
+  .scroll-hero__note-label {
+    display: inline-block;
+    margin-bottom: var(--space-sm);
+    font-size: var(--text-caption);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .scroll-path {
+    position: relative;
+    display: grid;
+    gap: var(--space-xl);
+    padding: var(--space-md) 0;
+  }
+
+  .scroll-path::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    transform: translateX(-50%);
+    background: linear-gradient(
+      180deg,
+      rgba(205, 164, 52, 0),
+      rgba(205, 164, 52, 0.65) 10%,
+      rgba(35, 122, 99, 0.45) 90%,
+      rgba(35, 122, 99, 0)
+    );
+  }
+
+  .scroll-node {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 5rem 1fr;
+    gap: var(--space-lg);
+    align-items: stretch;
+  }
+
+  .scroll-node--left .scroll-card {
+    grid-column: 1;
+  }
+
+  .scroll-node--right .scroll-card {
+    grid-column: 3;
+  }
+
+  .scroll-node__marker {
+    grid-column: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .scroll-node__step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 999px;
+    border: 1px solid rgba(205, 164, 52, 0.4);
+    background: color-mix(in srgb, var(--color-parchment) 88%, white);
+    box-shadow: 0 0 0 8px rgba(245, 240, 230, 0.75);
+    font-family: var(--font-display-en), serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+
+  .scroll-card {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    padding: var(--space-xl);
+    border-radius: 28px;
+    border: 1px solid rgba(28, 25, 23, 0.08);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.52), transparent 65%),
+      color-mix(in srgb, var(--color-parchment) 88%, var(--accent) 6%);
+    box-shadow: var(--shadow-md);
+    color: inherit;
+    text-decoration: none;
+    transition:
+      transform var(--duration-fast) var(--ease-default),
+      box-shadow var(--duration-fast) var(--ease-default);
+    isolation: isolate;
+  }
+
+  .scroll-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .scroll-card__glyph {
+    position: absolute;
+    top: -0.12em;
+    right: 0.08em;
+    z-index: 0;
+    font-family: var(--font-display-cn), serif;
+    font-size: clamp(5rem, 12vw, 7rem);
+    line-height: 1;
+    color: color-mix(in srgb, var(--accent) 18%, transparent);
+    pointer-events: none;
+  }
+
+  .scroll-card__top,
+  .scroll-card__footer {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .scroll-card__top {
+    margin-bottom: var(--space-md);
+  }
+
+  .scroll-card__level {
+    display: inline-flex;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 12%, white);
+    color: var(--color-text-primary);
+    font-size: var(--text-caption);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .scroll-card__meta,
+  .scroll-card__footer {
+    color: var(--color-text-secondary);
+    font-size: var(--text-small);
+  }
+
+  .scroll-card h2 {
+    position: relative;
+    z-index: 1;
+    margin: 0 0 var(--space-sm);
+    font-family: var(--font-display-en), serif;
+    font-size: clamp(1.65rem, 3vw, 2.2rem);
+    line-height: 1.12;
+    color: var(--color-text-primary);
+  }
+
+  .scroll-card p {
+    position: relative;
+    z-index: 1;
+    margin: 0 0 var(--space-lg);
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+  }
+
+  @media (max-width: 900px) {
+    .scroll-hero {
+      grid-template-columns: 1fr;
+    }
+
+    .scroll-path::before {
+      left: 1.5rem;
+      transform: none;
+    }
+
+    .scroll-node {
+      grid-template-columns: 3rem 1fr;
+      gap: var(--space-md);
+    }
+
+    .scroll-node__marker {
+      grid-column: 1;
+    }
+
+    .scroll-node--left .scroll-card,
+    .scroll-node--right .scroll-card {
+      grid-column: 2;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .timeline-page {
+      padding-top: var(--space-lg);
+    }
+
+    .scroll-card {
+      padding: var(--space-lg);
+    }
+  }
+
+  :global([data-theme='dark']) .preview-switcher a,
+  :global([data-theme='dark']) .scroll-hero,
+  :global([data-theme='dark']) .scroll-hero__note,
+  :global([data-theme='dark']) .scroll-card {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global([data-theme='dark']) .preview-switcher a,
+  :global([data-theme='dark']) .scroll-hero__note {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  :global([data-theme='dark']) .scroll-hero {
+    background:
+      radial-gradient(circle at top right, rgba(205, 164, 52, 0.12), transparent 34%),
+      radial-gradient(circle at bottom left, rgba(35, 122, 99, 0.1), transparent 28%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 65%),
+      var(--color-bg);
+  }
+
+  :global([data-theme='dark']) .scroll-card {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 65%),
+      color-mix(in srgb, var(--color-surface) 92%, var(--accent) 8%);
+  }
+
+  :global([data-theme='dark']) .scroll-node__step {
+    box-shadow: 0 0 0 8px rgba(21, 21, 21, 0.6);
+  }
+</style>

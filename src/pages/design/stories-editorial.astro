@@ -1,0 +1,443 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+const difficultyMeta = {
+  beginner: { label: 'Beginner' },
+  intermediate: { label: 'Intermediate' },
+  advanced: { label: 'Advanced' },
+} as const;
+
+type Difficulty = keyof typeof difficultyMeta;
+
+const difficultyRank: Record<Difficulty, number> = {
+  beginner: 0,
+  intermediate: 1,
+  advanced: 2,
+};
+
+const storyThemes: Record<
+  string,
+  { kicker: string; accent: string }
+> = {
+  'four-great-inventions': {
+    kicker: 'Innovation and craft',
+    accent: 'var(--color-gold-leaf)',
+  },
+  'grand-canal': {
+    kicker: 'Waterways and empire',
+    accent: 'var(--color-jade)',
+  },
+  'mandate-of-heaven': {
+    kicker: 'Ideas and legitimacy',
+    accent: 'var(--color-vermillion)',
+  },
+  'silk-road': {
+    kicker: 'Trade and exchange',
+    accent: 'var(--color-gold-leaf)',
+  },
+  'terracotta-warriors': {
+    kicker: 'Power and afterlife',
+    accent: 'var(--color-vermillion)',
+  },
+  'zheng-he-voyages': {
+    kicker: 'Ocean routes',
+    accent: 'var(--color-jade)',
+  },
+};
+
+const stories = (await getCollection('stories'))
+  .map((entry) => {
+    const difficulty = entry.data.difficulty as Difficulty;
+    const plainText = (entry.body ?? '')
+      .replace(/^---[\s\S]*?---/, '')
+      .replace(/[`*_>#-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const wordCount = plainText ? plainText.split(' ').length : 0;
+    const readingTime = Math.max(3, Math.ceil(wordCount / 180));
+    const visibleTags = (entry.data.tags ?? []).filter(
+      (tag) => tag !== 'Language Learning'
+    );
+    const theme = storyThemes[entry.id] ?? {
+      kicker: 'Historical reading',
+      accent: 'var(--color-jade)',
+    };
+
+    return {
+      entry,
+      difficulty,
+      readingTime,
+      wordCount,
+      visibleTags,
+      theme,
+    };
+  })
+  .sort((a, b) => {
+    const difficultyCompare = difficultyRank[a.difficulty] - difficultyRank[b.difficulty];
+    if (difficultyCompare !== 0) return difficultyCompare;
+    return b.entry.data.date.getTime() - a.entry.data.date.getTime();
+  });
+
+const featuredStory = stories[0];
+const remainingStories = stories.slice(1);
+---
+
+<BaseLayout
+  title="Stories Preview — Editorial Magazine | LoongLore"
+  description="Concept preview: the stories archive reimagined as a minimal editorial magazine."
+>
+  <main class="editorial-page">
+    <nav class="preview-switcher" aria-label="Design preview switcher">
+      <span class="preview-switcher__label">Design previews</span>
+      <a href="/design/stories-timeline">Historical scroll</a>
+      <a href="/design/stories-editorial" aria-current="page">Editorial magazine</a>
+      <a href="/stories">Current live page</a>
+    </nav>
+
+    <header class="editorial-hero">
+      <p class="editorial-kicker">Concept 04 · Editorial magazine</p>
+      <div class="editorial-hero__grid">
+        <h1>Chinese history, arranged like a premium reading journal.</h1>
+        <p class="editorial-lede">
+          This direction removes most ornament and lets typography, spacing, and
+          proportion do the emotional work. The result is cleaner, more international,
+          and more quietly luxurious.
+        </p>
+      </div>
+    </header>
+
+    {featuredStory && (
+      <section
+        class="editorial-feature"
+        style={`--accent: ${featuredStory.theme.accent};`}
+      >
+        <span class="editorial-feature__number">01</span>
+
+        <div class="editorial-feature__content">
+          <p class="editorial-feature__eyebrow">
+            {featuredStory.theme.kicker} · {difficultyMeta[featuredStory.difficulty].label}
+          </p>
+          <h2>{featuredStory.entry.data.title}</h2>
+          <p class="editorial-feature__excerpt">
+            {featuredStory.entry.data.excerpt || featuredStory.entry.data.description}
+          </p>
+
+          <div class="editorial-feature__meta">
+            <span>{featuredStory.readingTime} min read</span>
+            <span>{featuredStory.wordCount} words</span>
+            <span>{featuredStory.visibleTags.slice(0, 2).join(' · ')}</span>
+          </div>
+
+          <a href={`/stories/${featuredStory.entry.id}`} class="editorial-feature__cta">
+            Read feature →
+          </a>
+        </div>
+      </section>
+    )}
+
+    <section class="editorial-list" aria-label="Editorial archive concept">
+      {remainingStories.map((story, index) => (
+        <a
+          href={`/stories/${story.entry.id}`}
+          class="editorial-row"
+          style={`--accent: ${story.theme.accent};`}
+        >
+          <span class="editorial-row__number">{String(index + 2).padStart(2, '0')}</span>
+
+          <div class="editorial-row__main">
+            <div class="editorial-row__top">
+              <span class="editorial-row__kicker">{story.theme.kicker}</span>
+              <span class="editorial-row__level">
+                {difficultyMeta[story.difficulty].label}
+              </span>
+            </div>
+
+            <h3>{story.entry.data.title}</h3>
+            <p>{story.entry.data.excerpt || story.entry.data.description}</p>
+          </div>
+
+          <div class="editorial-row__side">
+            <span>{story.readingTime} min</span>
+            <span>{story.wordCount} words</span>
+            <span>{story.visibleTags[0] || 'Chinese History'}</span>
+          </div>
+        </a>
+      ))}
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .editorial-page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md) var(--space-3xl);
+  }
+
+  .preview-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+  }
+
+  .preview-switcher__label {
+    font-size: var(--text-caption);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  .preview-switcher a {
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-border-subtle);
+    background: rgba(255, 255, 255, 0.45);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    font-size: var(--text-small);
+    transition:
+      transform var(--duration-fast) var(--ease-default),
+      border-color var(--duration-fast) var(--ease-default);
+  }
+
+  .preview-switcher a[aria-current='page'] {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-parchment);
+  }
+
+  .preview-switcher a:hover {
+    transform: translateY(-1px);
+    border-color: rgba(196, 57, 42, 0.32);
+  }
+
+  .editorial-hero {
+    margin-bottom: var(--space-2xl);
+    padding-bottom: var(--space-xl);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .editorial-kicker {
+    margin: 0 0 var(--space-sm);
+    font-size: var(--text-small);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-brand);
+  }
+
+  .editorial-hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+    gap: var(--space-xl);
+    align-items: end;
+  }
+
+  .editorial-hero h1 {
+    margin: 0;
+    max-width: 12ch;
+    font-family: var(--font-display-en), serif;
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    color: var(--color-text-primary);
+  }
+
+  .editorial-lede {
+    margin: 0;
+    max-width: 34ch;
+    color: var(--color-text-secondary);
+    line-height: 1.85;
+  }
+
+  .editorial-feature {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: var(--space-xl);
+    margin-bottom: var(--space-2xl);
+    padding: var(--space-xl) 0;
+    border-top: 2px solid var(--color-text-primary);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .editorial-feature__number {
+    font-family: var(--font-display-en), serif;
+    font-size: clamp(4rem, 10vw, 7rem);
+    line-height: 0.9;
+    color: color-mix(in srgb, var(--accent) 28%, var(--color-text-primary));
+  }
+
+  .editorial-feature__content {
+    display: grid;
+    gap: var(--space-md);
+  }
+
+  .editorial-feature__eyebrow {
+    margin: 0;
+    font-size: var(--text-caption);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  .editorial-feature h2 {
+    margin: 0;
+    max-width: 11ch;
+    font-family: var(--font-display-en), serif;
+    font-size: clamp(2rem, 4vw, 3.4rem);
+    line-height: 1;
+    color: var(--color-text-primary);
+  }
+
+  .editorial-feature__excerpt {
+    margin: 0;
+    max-width: 60ch;
+    color: var(--color-text-secondary);
+    line-height: 1.85;
+  }
+
+  .editorial-feature__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: var(--color-text-secondary);
+    font-size: var(--text-small);
+  }
+
+  .editorial-feature__cta {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--color-text-primary);
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 0.15rem;
+  }
+
+  .editorial-list {
+    display: grid;
+  }
+
+  .editorial-row {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr) 12rem;
+    gap: var(--space-lg);
+    padding: var(--space-lg) 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+    color: inherit;
+    text-decoration: none;
+    transition:
+      transform var(--duration-fast) var(--ease-default),
+      background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .editorial-row:hover {
+    transform: translateX(4px);
+  }
+
+  .editorial-row__number {
+    font-family: var(--font-display-en), serif;
+    font-size: 2.2rem;
+    line-height: 1;
+    color: color-mix(in srgb, var(--accent) 26%, var(--color-text-primary));
+  }
+
+  .editorial-row__main {
+    min-width: 0;
+  }
+
+  .editorial-row__top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-sm);
+  }
+
+  .editorial-row__kicker,
+  .editorial-row__level {
+    font-size: var(--text-caption);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .editorial-row__kicker {
+    color: var(--color-text-secondary);
+  }
+
+  .editorial-row__level {
+    color: color-mix(in srgb, var(--accent) 55%, var(--color-text-primary));
+  }
+
+  .editorial-row h3 {
+    margin: 0 0 var(--space-xs);
+    font-family: var(--font-display-en), serif;
+    font-size: clamp(1.5rem, 2.3vw, 2rem);
+    line-height: 1.08;
+    color: var(--color-text-primary);
+  }
+
+  .editorial-row p {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+  }
+
+  .editorial-row__side {
+    display: grid;
+    gap: 0.35rem;
+    align-content: start;
+    justify-items: end;
+    font-size: var(--text-small);
+    color: var(--color-text-secondary);
+    text-align: right;
+  }
+
+  @media (max-width: 900px) {
+    .editorial-hero__grid,
+    .editorial-feature {
+      grid-template-columns: 1fr;
+    }
+
+    .editorial-row {
+      grid-template-columns: 4rem 1fr;
+    }
+
+    .editorial-row__side {
+      grid-column: 2;
+      justify-items: start;
+      text-align: left;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .editorial-page {
+      padding-top: var(--space-lg);
+    }
+
+    .editorial-row {
+      grid-template-columns: 1fr;
+      gap: var(--space-sm);
+    }
+
+    .editorial-row__number,
+    .editorial-row__side {
+      justify-items: start;
+      text-align: left;
+    }
+  }
+
+  :global([data-theme='dark']) .preview-switcher a {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+  }
+</style>
