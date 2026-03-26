@@ -1,0 +1,540 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+const difficultyMeta = {
+  beginner: {
+    label: 'Beginner',
+    shelfTitle: 'Beginner shelf',
+    shelfCopy: 'Approachable entries, clear sentence support, and the best place to start.',
+  },
+  intermediate: {
+    label: 'Intermediate',
+    shelfTitle: 'Intermediate shelf',
+    shelfCopy: 'Denser readings with stronger Chinese rhythm and deeper context.',
+  },
+  advanced: {
+    label: 'Advanced',
+    shelfTitle: 'Advanced shelf',
+    shelfCopy: 'Reserved space for future long-form readings and tougher texts.',
+  },
+} as const;
+
+type Difficulty = keyof typeof difficultyMeta;
+
+const difficultyRank: Record<Difficulty, number> = {
+  beginner: 0,
+  intermediate: 1,
+  advanced: 2,
+};
+
+const storyThemes: Record<
+  string,
+  { glyph: string; kicker: string; accent: string }
+> = {
+  'four-great-inventions': {
+    glyph: '工',
+    kicker: 'Innovation and craft',
+    accent: 'var(--color-gold-leaf)',
+  },
+  'grand-canal': {
+    glyph: '河',
+    kicker: 'Waterways and empire',
+    accent: 'var(--color-jade)',
+  },
+  'mandate-of-heaven': {
+    glyph: '天',
+    kicker: 'Ideas and legitimacy',
+    accent: 'var(--color-vermillion)',
+  },
+  'silk-road': {
+    glyph: '路',
+    kicker: 'Trade and exchange',
+    accent: 'var(--color-gold-leaf)',
+  },
+  'terracotta-warriors': {
+    glyph: '兵',
+    kicker: 'Power and afterlife',
+    accent: 'var(--color-vermillion)',
+  },
+  'zheng-he-voyages': {
+    glyph: '航',
+    kicker: 'Ocean routes',
+    accent: 'var(--color-jade)',
+  },
+};
+
+const bookSizes = [
+  { width: '10rem', height: '16rem', lean: '-2deg' },
+  { width: '9.3rem', height: '14.6rem', lean: '1.5deg' },
+  { width: '10.8rem', height: '17.2rem', lean: '-0.8deg' },
+  { width: '9.8rem', height: '15.4rem', lean: '2.2deg' },
+] as const;
+
+const stories = (await getCollection('stories'))
+  .map((entry, index) => {
+    const difficulty = entry.data.difficulty as Difficulty;
+    const plainText = (entry.body ?? '')
+      .replace(/^---[\s\S]*?---/, '')
+      .replace(/[`*_>#-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const wordCount = plainText ? plainText.split(' ').length : 0;
+    const readingTime = Math.max(3, Math.ceil(wordCount / 180));
+    const visibleTags = (entry.data.tags ?? []).filter(
+      (tag) => tag !== 'Language Learning'
+    );
+    const theme = storyThemes[entry.id] ?? {
+      glyph: '史',
+      kicker: 'Historical reading',
+      accent: 'var(--color-jade)',
+    };
+    const size = bookSizes[index % bookSizes.length];
+
+    return {
+      entry,
+      difficulty,
+      readingTime,
+      wordCount,
+      visibleTags,
+      theme,
+      size,
+    };
+  })
+  .sort((a, b) => {
+    const difficultyCompare = difficultyRank[a.difficulty] - difficultyRank[b.difficulty];
+    if (difficultyCompare !== 0) return difficultyCompare;
+    return b.entry.data.date.getTime() - a.entry.data.date.getTime();
+  });
+
+const shelves = (['beginner', 'intermediate', 'advanced'] as Difficulty[]).map((level) => ({
+  level,
+  ...difficultyMeta[level],
+  items: stories.filter((story) => story.difficulty === level),
+}));
+
+const beginnerCount = shelves[0]?.items.length ?? 0;
+const intermediateCount = shelves[1]?.items.length ?? 0;
+const advancedCount = shelves[2]?.items.length ?? 0;
+---
+
+<BaseLayout
+  title="Stories Preview — Bookshelf Hybrid | LoongLore"
+  description="Concept preview: keep the strong intro card and arrange the archive like books on shelves."
+>
+  <main class="bookshelf-page">
+    <nav class="preview-switcher" aria-label="Design preview switcher">
+      <span class="preview-switcher__label">Design previews</span>
+      <a href="/design/stories-museum">Museum exhibit</a>
+      <a href="/design/stories-timeline">Historical scroll</a>
+      <a href="/design/stories-archive">Archive dossier</a>
+      <a href="/design/stories-editorial">Editorial magazine</a>
+      <a href="/design/stories-bookshelf" aria-current="page">Bookshelf hybrid</a>
+      <a href="/stories">Current live page</a>
+    </nav>
+
+    <div class="bookshelf-layout">
+      <aside class="bookshelf-intro">
+        <p class="bookshelf-kicker">Concept 05 · Bookshelf hybrid</p>
+        <h1>Choose your next Chinese history story.</h1>
+        <p class="bookshelf-lede">
+          Keep the strong entry card as the anchor. Then let the archive feel like a
+          shelf of treasured volumes: browsable, tactile, and a little bit playful.
+        </p>
+
+        <div class="bookshelf-stats">
+          <div class="bookshelf-stat">
+            <span>Beginner</span>
+            <strong>{beginnerCount}</strong>
+          </div>
+          <div class="bookshelf-stat">
+            <span>Intermediate</span>
+            <strong>{intermediateCount}</strong>
+          </div>
+          <div class="bookshelf-stat">
+            <span>Advanced</span>
+            <strong>{advancedCount}</strong>
+          </div>
+        </div>
+      </aside>
+
+      <section class="bookshelf-library">
+        {shelves.map((shelf) => (
+          <section class="shelf-section">
+            <div class="shelf-section__heading">
+              <div>
+                <p class="shelf-section__label">{difficultyMeta[shelf.level].label}</p>
+                <h2>{shelf.shelfTitle}</h2>
+              </div>
+              <p>{shelf.shelfCopy}</p>
+            </div>
+
+            <div class="book-row">
+              {shelf.items.length > 0 ? (
+                shelf.items.map((story) => (
+                  <a
+                    href={`/stories/${story.entry.id}`}
+                    class="book"
+                    style={`--accent: ${story.theme.accent}; --book-width: ${story.size.width}; --book-height: ${story.size.height}; --lean: ${story.size.lean};`}
+                  >
+                    <span class="book__glyph" aria-hidden="true">{story.theme.glyph}</span>
+                    <span class="book__badge">{story.theme.kicker}</span>
+                    <h3>{story.entry.data.title}</h3>
+                    <p>{story.entry.data.excerpt || story.entry.data.description}</p>
+                    <div class="book__meta">
+                      <span>{story.readingTime} min</span>
+                      <span>{story.visibleTags[0] || 'Chinese History'}</span>
+                    </div>
+                  </a>
+                ))
+              ) : (
+                <div class="book-placeholder">
+                  <span>Reserved shelf space</span>
+                  <p>Future advanced readings can live here as thicker, weightier volumes.</p>
+                </div>
+              )}
+            </div>
+
+            <div class="shelf-plank" aria-hidden="true"></div>
+          </section>
+        ))}
+      </section>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .bookshelf-page {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md) var(--space-3xl);
+  }
+
+  .preview-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+  }
+
+  .preview-switcher__label {
+    font-size: var(--text-caption);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  .preview-switcher a {
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-border-subtle);
+    background: rgba(255, 255, 255, 0.45);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    font-size: var(--text-small);
+    transition:
+      transform var(--duration-fast) var(--ease-default),
+      border-color var(--duration-fast) var(--ease-default);
+  }
+
+  .preview-switcher a[aria-current='page'] {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-parchment);
+  }
+
+  .preview-switcher a:hover {
+    transform: translateY(-1px);
+    border-color: rgba(35, 122, 99, 0.3);
+  }
+
+  .bookshelf-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 2.1fr) minmax(0, 7.9fr);
+    gap: var(--space-xl);
+    align-items: start;
+  }
+
+  .bookshelf-intro {
+    position: sticky;
+    top: 1.5rem;
+    padding: clamp(1.4rem, 3vw, 2rem);
+    border-radius: 30px;
+    border: 1px solid rgba(28, 25, 23, 0.08);
+    background:
+      radial-gradient(circle at top right, rgba(205, 164, 52, 0.14), transparent 34%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.18)),
+      var(--color-bg);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .bookshelf-kicker {
+    margin: 0 0 var(--space-sm);
+    font-size: var(--text-small);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-brand);
+  }
+
+  .bookshelf-intro h1 {
+    margin: 0 0 var(--space-md);
+    font-family: var(--font-display-en), serif;
+    font-size: clamp(2rem, 4vw, 3.15rem);
+    line-height: 1.04;
+    color: var(--color-text-primary);
+  }
+
+  .bookshelf-lede {
+    margin: 0;
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+  }
+
+  .bookshelf-stats {
+    display: grid;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+  }
+
+  .bookshelf-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding: 0.8rem 1rem;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.52);
+    border: 1px solid rgba(28, 25, 23, 0.08);
+  }
+
+  .bookshelf-stat span {
+    font-size: var(--text-small);
+    color: var(--color-text-secondary);
+  }
+
+  .bookshelf-stat strong {
+    font-family: var(--font-display-en), serif;
+    font-size: 1.45rem;
+    color: var(--color-text-primary);
+  }
+
+  .bookshelf-library {
+    display: grid;
+    gap: var(--space-2xl);
+  }
+
+  .shelf-section__heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+
+  .shelf-section__label {
+    margin: 0 0 0.35rem;
+    font-size: var(--text-caption);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .shelf-section__heading h2 {
+    margin: 0;
+    font-family: var(--font-display-en), serif;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    color: var(--color-text-primary);
+  }
+
+  .shelf-section__heading p {
+    margin: 0;
+    max-width: 30rem;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+
+  .book-row {
+    display: flex;
+    align-items: end;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    padding: var(--space-md) var(--space-sm) 0;
+  }
+
+  .book {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: var(--book-width);
+    min-width: 8.75rem;
+    height: var(--book-height);
+    padding: 1rem 1rem 1.1rem;
+    border-radius: 18px 18px 12px 12px;
+    border: 1px solid color-mix(in srgb, var(--accent) 22%, rgba(28, 25, 23, 0.08));
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.52), transparent 70%),
+      color-mix(in srgb, var(--color-parchment) 88%, var(--accent) 10%);
+    box-shadow: 0 14px 28px rgba(28, 25, 23, 0.14);
+    color: inherit;
+    text-decoration: none;
+    transform: rotate(var(--lean));
+    transition:
+      transform var(--duration-fast) var(--ease-default),
+      box-shadow var(--duration-fast) var(--ease-default);
+    overflow: hidden;
+  }
+
+  .book:hover {
+    transform: translateY(-6px) rotate(0deg);
+    box-shadow: 0 22px 36px rgba(28, 25, 23, 0.18);
+  }
+
+  .book__glyph {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.6rem;
+    font-family: var(--font-display-cn), serif;
+    font-size: 2.4rem;
+    line-height: 1;
+    color: color-mix(in srgb, var(--accent) 22%, transparent);
+    pointer-events: none;
+  }
+
+  .book__badge {
+    display: inline-flex;
+    width: fit-content;
+    max-width: 100%;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 14%, white);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-primary);
+  }
+
+  .book h3 {
+    margin: 0.8rem 0 0.55rem;
+    font-family: var(--font-display-en), serif;
+    font-size: 1.15rem;
+    line-height: 1.1;
+    color: var(--color-text-primary);
+  }
+
+  .book p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .book__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: var(--space-md);
+    font-size: var(--text-caption);
+    color: var(--color-text-secondary);
+  }
+
+  .shelf-plank {
+    height: 16px;
+    margin-top: 0.55rem;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #8b6744, #5d4129);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      0 10px 18px rgba(28, 25, 23, 0.16);
+  }
+
+  .book-placeholder {
+    padding: var(--space-lg);
+    border-radius: 22px;
+    border: 1px dashed rgba(28, 25, 23, 0.15);
+    background: rgba(255, 255, 255, 0.4);
+  }
+
+  .book-placeholder span {
+    display: inline-block;
+    margin-bottom: var(--space-xs);
+    font-family: var(--font-display-en), serif;
+    font-size: 1.2rem;
+    color: var(--color-text-primary);
+  }
+
+  .book-placeholder p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+
+  @media (max-width: 960px) {
+    .bookshelf-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .bookshelf-intro {
+      position: static;
+    }
+
+    .shelf-section__heading {
+      align-items: start;
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .bookshelf-page {
+      padding-top: var(--space-lg);
+    }
+
+    .book-row {
+      gap: var(--space-sm);
+    }
+
+    .book {
+      width: min(100%, 10.5rem);
+      min-width: 8.5rem;
+      height: auto;
+      min-height: 13rem;
+      transform: none;
+    }
+  }
+
+  :global([data-theme='dark']) .preview-switcher a,
+  :global([data-theme='dark']) .bookshelf-intro,
+  :global([data-theme='dark']) .bookshelf-stat,
+  :global([data-theme='dark']) .book,
+  :global([data-theme='dark']) .book-placeholder {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global([data-theme='dark']) .preview-switcher a,
+  :global([data-theme='dark']) .bookshelf-stat,
+  :global([data-theme='dark']) .book-placeholder {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  :global([data-theme='dark']) .bookshelf-intro {
+    background:
+      radial-gradient(circle at top right, rgba(205, 164, 52, 0.12), transparent 34%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 70%),
+      var(--color-bg);
+  }
+
+  :global([data-theme='dark']) .book {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 70%),
+      color-mix(in srgb, var(--color-surface) 92%, var(--accent) 10%);
+  }
+</style>
