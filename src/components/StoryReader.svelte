@@ -1,5 +1,6 @@
 <script>
   /** @typedef {{ id: string, en: string, zh: string, segments: Array<{text: string, pinyin?: string, gloss?: string}> }} Sentence */
+  import TypingPractice from './TypingPractice.svelte';
 
   let {
     /** @type {'en-first' | 'zh-first'} */
@@ -77,6 +78,17 @@
   function playSentenceAudio(text) {
     window.dispatchEvent(new CustomEvent('audio-play-request', { detail: { text } }));
   }
+
+  /** @type {number | null} */
+  let typingIdx = $state(null);
+
+  function startTyping(idx) {
+    typingIdx = idx;
+  }
+
+  function closeTyping() {
+    typingIdx = null;
+  }
 </script>
 
 <!-- Hidden: original slot content (parsed for data) -->
@@ -109,6 +121,7 @@
             <div class="sr-expansion" data-sentence-id={sentence.id}>
               <div class="sr-expansion-header">
                 <button class="sr-audio-btn" onclick={() => playSentenceAudio(sentence.zh)} aria-label="Play sentence audio" title="播放">🔊</button>
+                <button class="sr-typing-btn" onclick={() => startTyping(idx)} aria-label="Practice typing" title="打字练习">⌨️</button>
               </div>
               <p class="sr-zh" lang="zh-CN">
                 {#each sentence.segments as seg}
@@ -124,6 +137,13 @@
                   {/if}
                 {/each}
               </p>
+              {#if typingIdx === idx}
+                <TypingPractice
+                  sentence={sentence}
+                  onComplete={closeTyping}
+                  onClose={closeTyping}
+                />
+              {/if}
             </div>
           {/if}
         {/each}
@@ -153,8 +173,18 @@
           </button>
           {#if expandedIdx === idx}
             <div class="sr-en-expansion-wrap">
-              <button class="sr-audio-btn" onclick={() => playSentenceAudio(sentence.zh)} aria-label="Play sentence audio" title="播放">🔊</button>
+              <div class="sr-expansion-header">
+                <button class="sr-audio-btn" onclick={() => playSentenceAudio(sentence.zh)} aria-label="Play sentence audio" title="播放">🔊</button>
+                <button class="sr-typing-btn" onclick={() => startTyping(idx)} aria-label="Practice typing" title="打字练习">⌨️</button>
+              </div>
               <p class="sr-en-expansion">{sentence.en}</p>
+              {#if typingIdx === idx}
+                <TypingPractice
+                  sentence={sentence}
+                  onComplete={closeTyping}
+                  onClose={closeTyping}
+                />
+              {/if}
             </div>
           {/if}
         </div>
@@ -227,10 +257,11 @@
   .sr-expansion-header {
     display: flex;
     justify-content: flex-end;
+    gap: 6px;
     margin-bottom: 4px;
   }
 
-  .sr-audio-btn {
+  .sr-audio-btn, .sr-typing-btn {
     width: 36px;
     height: 36px;
     display: flex;

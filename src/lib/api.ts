@@ -101,13 +101,22 @@ export async function logout(): Promise<void> {
 export async function syncVocabulary(
   words: any[],
   reviewLogs: any[],
+  progress: any[] = [],
   since?: string
-): Promise<{ words: any[]; conflicts: any[] }> {
-  const response = await apiFetch(SYNC_BASE, '/api/vocab/sync', {
+): Promise<{
+  serverUpdates: {
+    vocabulary: any[];
+    reviewLog: any[];
+    progress: any[];
+    serverTime: string;
+  };
+}> {
+  const response = await apiFetch(SYNC_BASE, '/api/sync/push', {
     method: 'POST',
     body: JSON.stringify({
-      words,
-      reviewLogs,
+      vocabulary: words,
+      reviewLog: reviewLogs,
+      progress,
       since: since || new Date(0).toISOString(),
     }),
   });

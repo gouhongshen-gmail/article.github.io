@@ -13,6 +13,7 @@ public/images/*
 !public/images/icon-192.png
 !public/images/icon-512.png
 !public/fonts/
+!public/data/
 !public/manifest.json
 !public/service-worker.js
 !public/offline.html

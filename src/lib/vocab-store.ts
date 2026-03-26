@@ -12,6 +12,7 @@ export interface VocabCard {
   hanzi: string;
   pinyin: string;
   gloss: string;
+  note?: string;
   storyId: string;
   storyTitle: string;
   sentenceZh: string;

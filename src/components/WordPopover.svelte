@@ -1,5 +1,9 @@
 <script>
   import { saveWord, isWordSaved, getWordCount } from '@lib/vocab-store';
+  import {
+    getWordsByStory as getNotebookWordsByStory,
+    updateWordNote,
+  } from '@lib/notebook-store';
   import { canAddWord } from '@lib/limits';
   import LimitModal from './LimitModal.svelte';
 
@@ -21,22 +25,31 @@
   let noteText = $state('');
   let showNoteInput = $state(false);
 
+  function getStoryId() {
+    return window.location.pathname.split('/').filter(Boolean).pop() || 'unknown';
+  }
+
+  function getNoteKey(hanzi, storyId) {
+    return `${hanzi}_${storyId}`;
+  }
+
   /** Load saved note from localStorage */
-  function loadNote(hanzi) {
+  function loadNote(hanzi, storyId) {
     try {
       const notes = JSON.parse(localStorage.getItem('longlore_word_notes') || '{}');
-      return notes[hanzi] || '';
+      return notes[getNoteKey(hanzi, storyId)] || '';
     } catch { return ''; }
   }
 
   /** Save note to localStorage */
-  function saveNote(hanzi, text) {
+  function saveNote(hanzi, storyId, text) {
     try {
       const notes = JSON.parse(localStorage.getItem('longlore_word_notes') || '{}');
+      const key = getNoteKey(hanzi, storyId);
       if (text.trim()) {
-        notes[hanzi] = text.trim();
+        notes[key] = text.trim();
       } else {
-        delete notes[hanzi];
+        delete notes[key];
       }
       localStorage.setItem('longlore_word_notes', JSON.stringify(notes));
     } catch { /* ignore */ }
@@ -120,12 +133,23 @@
       };
 
       // Load note and check saved status
-      noteText = loadNote(word.hanzi);
+      const storyId = getStoryId();
+      noteText = loadNote(word.hanzi, storyId);
       showNoteInput = !!noteText;
       speaking = false;
       saved = false;
-      isWordSaved(word.hanzi, window.location.pathname.split('/').filter(Boolean).pop() || 'unknown')
-        .then(isSaved => { saved = isSaved; })
+      Promise.all([
+        isWordSaved(word.hanzi, storyId),
+        getNotebookWordsByStory(storyId).catch(() => []),
+      ])
+        .then(([isSaved, storyWords]) => {
+          saved = isSaved;
+          const savedWord = storyWords.find((entry) => entry.hanzi === word?.hanzi);
+          if (savedWord?.note && !noteText) {
+            noteText = savedWord.note;
+            showNoteInput = true;
+          }
+        })
         .catch(() => {});
 
       if (!isMobile) positionPopover(token);
@@ -141,8 +165,14 @@
 
   function dismiss() {
     // Save note on dismiss
-    if (word && noteText !== loadNote(word.hanzi)) {
-      saveNote(word.hanzi, noteText);
+    if (word) {
+      const storyId = getStoryId();
+      if (noteText !== loadNote(word.hanzi, storyId)) {
+        saveNote(word.hanzi, storyId, noteText);
+      }
+      if (saved) {
+        void updateWordNote(word.hanzi, storyId, noteText).catch(() => {});
+      }
     }
     visible = false;
     showNoteInput = false;
@@ -183,11 +213,14 @@
         hanzi: word.hanzi,
         pinyin: word.pinyin,
         gloss: word.gloss,
-        storyId: window.location.pathname.split('/').filter(Boolean).pop() || 'unknown',
+        storyId: getStoryId(),
         storyTitle: document.title.split('|')[0]?.trim() || '',
         sentenceZh: ctx.zh,
         sentenceEn: ctx.en,
       });
+      if (noteText.trim()) {
+        await updateWordNote(word.hanzi, getStoryId(), noteText);
+      }
       saved = true;
       if (activeEl) activeEl.setAttribute('data-saved', 'true');
       setTimeout(() => { saved = false; }, 2000);
@@ -199,7 +232,12 @@
   }
 
   function handleNoteBlur() {
-    if (word) saveNote(word.hanzi, noteText);
+    if (!word) return;
+    const storyId = getStoryId();
+    saveNote(word.hanzi, storyId, noteText);
+    if (saved) {
+      void updateWordNote(word.hanzi, storyId, noteText).catch(() => {});
+    }
     if (!noteText.trim()) showNoteInput = false;
   }
 
