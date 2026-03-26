@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
+import HomepageDemo from '@components/HomepageDemo.svelte';
 import { getCollection } from 'astro:content';
 
 const allStories = await getCollection('stories');
@@ -62,24 +63,6 @@ const valueCards = [
   {
     title: 'Sentence-Level Clarity',
     copy: 'Every Chinese sentence comes with pinyin, glosses, and English side-by-side.',
-  },
-];
-
-const demoSentences = [
-  {
-    zh: '大运河把北方朝廷与南方富庶的农业地区连接起来。',
-    pinyin: 'Dà Yùn Hé bǎ běi fāng cháo tíng yǔ nán fāng fù shù de nóng yè dì qū lián jiē qǐ lái.',
-    en: 'The Grand Canal linked northern courts with the rich agricultural regions of the south.',
-  },
-  {
-    zh: '正因为有了这条通道，粮食、税赋和官方文书才能更高效地流动。',
-    pinyin: 'Zhèng yīn wèi yǒu le zhè tiáo tōng dào, liáng shi, shuì fù hé guān fāng wén shū cái néng gèng gāo xiào de liú dòng.',
-    en: 'Because of that link, grain, tax revenue, and official messages could travel much more efficiently.',
-  },
-  {
-    zh: '隋朝统治者在更早水道的基础上加以扩建，把它们变成了一项规模宏大的国家工程。',
-    pinyin: 'Suí cháo tǒng zhì zhě zài gèng zǎo shuǐ dào de jī chǔ shàng jiā yǐ kuò jiàn, bǎ tā men biàn chéng le yī xiàng guī mó hóng dà de guó jiā gōng chéng.',
-    en: 'Sui rulers expanded older waterways and turned them into an immense state project.',
   },
 ];
 ---
@@ -164,31 +147,12 @@ const demoSentences = [
         <p class="section-kicker">Read → Discover → Remember</p>
         <h2>Try it yourself</h2>
         <p>
-          Read a real Chinese history sentence, see the pinyin, and understand it in
-          context — before you ever create an account.
+          Click any sentence to reveal the Chinese with pinyin and vocabulary glosses.
+          Click a highlighted word for its definition.
         </p>
       </div>
 
-      <div class="demo__list">
-        {demoSentences.map((sentence, index) => (
-          <article class="demo-card">
-            <p class="demo-card__zh" lang="zh-CN">
-              {index === 0 ? (
-                <>
-                  <span class="vocab-token glow-word">大</span>
-                  {sentence.zh.substring(1)}
-                </>
-              ) : (
-                sentence.zh
-              )}
-            </p>
-            <p class="demo-card__pinyin">{sentence.pinyin}</p>
-            <p class="demo-card__en">{sentence.en}</p>
-          </article>
-        ))}
-      </div>
-
-      <!-- video-walkthrough-slot -->
+      <HomepageDemo client:visible />
 
       <div class="demo__cta">
         <a href="/stories" class="cta cta--secondary" data-cta="how-it-works">
@@ -453,65 +417,6 @@ const demoSentences = [
     color: var(--color-text-secondary);
   }
 
-  .demo__list {
-    display: grid;
-    gap: var(--space-md);
-    max-width: 48rem;
-    margin: 0 auto;
-  }
-
-  .demo-card {
-    background: color-mix(in srgb, var(--color-elevated) 82%, var(--color-parchment));
-    border: 1px solid var(--color-border-subtle);
-    border-radius: var(--radius-lg);
-    padding: var(--space-lg);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .demo-card__zh {
-    margin-bottom: var(--space-xs);
-    font-size: clamp(1.25rem, 3vw, 1.65rem);
-    line-height: 1.7;
-    color: var(--color-text-primary);
-  }
-
-  .demo-card__pinyin {
-    margin-bottom: var(--space-sm);
-    font-size: 0.8rem;
-    line-height: 1.6;
-    color: var(--color-text-secondary);
-  }
-
-  .demo-card__en {
-    margin: 0;
-    color: var(--color-text-secondary);
-  }
-
-  /* Onboarding: glowing word to attract first tap */
-  .glow-word {
-    position: relative;
-    animation: glow-pulse 2s ease-in-out infinite;
-    border-radius: 2px;
-  }
-
-  @keyframes glow-pulse {
-    0%, 100% {
-      box-shadow: 0 0 0 0 rgba(205, 164, 52, 0);
-      background: transparent;
-    }
-    50% {
-      box-shadow: 0 0 12px 4px rgba(205, 164, 52, 0.3);
-      background: rgba(205, 164, 52, 0.08);
-    }
-  }
-
-  /* Stop glowing after user has interacted */
-  .glow-word.interacted {
-    animation: none;
-    box-shadow: none;
-    background: transparent;
-  }
-
   .demo__cta {
     display: flex;
     justify-content: center;
@@ -657,29 +562,8 @@ const demoSentences = [
       align-items: flex-start;
     }
 
-    .demo-card,
     .value-card {
       padding: var(--space-md);
     }
   }
 </style>
-
-<script is:inline>
-  // Onboarding: glowing word interaction tracking
-  document.addEventListener('DOMContentLoaded', () => {
-    const glowWord = document.querySelector('.glow-word');
-    
-    if (!glowWord) return;
-    
-    // Check if user has already interacted on a previous visit
-    if (localStorage.getItem('longlore_first_tap')) {
-      glowWord.classList.add('interacted');
-    }
-    
-    // Add listener for first click/tap
-    glowWord.addEventListener('click', () => {
-      glowWord.classList.add('interacted');
-      localStorage.setItem('longlore_first_tap', 'true');
-    });
-  });
-</script>

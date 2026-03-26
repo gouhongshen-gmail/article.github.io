@@ -6,6 +6,7 @@ import ReadingToolbar from '@components/ReadingToolbar.svelte';
 import StoryCompletion from '@components/StoryCompletion.svelte';
 import SectionNav from '@components/SectionNav.svelte';
 import StoryReader from '@components/StoryReader.svelte';
+import AudioProvider from '@components/AudioProvider.svelte';
 
 interface Props {
   title: string;
@@ -111,6 +112,7 @@ const articleSchema = {
 
   <WordPopover client:load />
   <ReadingToolbar client:idle />
+  <AudioProvider client:idle />
 
   {/* Reading progress script — pure DOM, no framework */}
   <script is:inline>

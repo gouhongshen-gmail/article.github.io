@@ -6,6 +6,8 @@
     direction = 'en-first',
     showPinyin = true,
     children,
+    /** Static sentences data (for demo, skips DOM parsing) */
+    data = /** @type {Sentence[] | null} */ (null),
   } = $props();
 
   /** @type {Sentence[]} */
@@ -14,6 +16,7 @@
   let expandedIdx = $state(null);
   /** @type {HTMLElement | null} */
   let contentEl = $state(null);
+  let activeDirection = $state(direction);
 
   // Parse cnlesson-pair elements from the slotted DOM
   function parseFromDom(container) {
@@ -46,30 +49,51 @@
     return result;
   }
 
+  // Use static data if provided, otherwise parse from DOM
   $effect(() => {
-    if (contentEl) {
+    if (data && data.length > 0) {
+      sentences = data;
+    } else if (contentEl) {
       sentences = parseFromDom(contentEl);
     }
+  });
+
+  // Listen for direction change from toolbar
+  $effect(() => {
+    activeDirection = direction;
+    function onDirectionChange(e) {
+      if (e.detail?.direction) {
+        activeDirection = e.detail.direction;
+      }
+    }
+    window.addEventListener('reading-direction-change', onDirectionChange);
+    return () => window.removeEventListener('reading-direction-change', onDirectionChange);
   });
 
   function toggleSentence(idx) {
     expandedIdx = expandedIdx === idx ? null : idx;
   }
+
+  function playSentenceAudio(text) {
+    window.dispatchEvent(new CustomEvent('audio-play-request', { detail: { text } }));
+  }
 </script>
 
 <!-- Hidden: original slot content (parsed for data) -->
+{#if !data}
 <div bind:this={contentEl} class="sr-source" class:sr-source--hidden={sentences.length > 0} aria-hidden={sentences.length > 0 ? 'true' : undefined}>
   {@render children?.()}
 </div>
+{/if}
 
 <!-- Rendered: new paragraph reading view -->
 {#if sentences.length > 0}
   <div
     class="sr-reader"
-    class:sr-zh-first={direction === 'zh-first'}
+    class:sr-zh-first={activeDirection === 'zh-first'}
     data-pinyin={showPinyin ? 'visible' : 'hidden'}
   >
-    {#if direction === 'en-first'}
+    {#if activeDirection === 'en-first'}
       <!-- English-first: flowing English paragraph, click to expand Chinese -->
       <div class="sr-paragraph">
         {#each sentences as sentence, idx}
@@ -83,6 +107,9 @@
           </button>
           {#if expandedIdx === idx}
             <div class="sr-expansion" data-sentence-id={sentence.id}>
+              <div class="sr-expansion-header">
+                <button class="sr-audio-btn" onclick={() => playSentenceAudio(sentence.zh)} aria-label="Play sentence audio" title="播放">🔊</button>
+              </div>
               <p class="sr-zh" lang="zh-CN">
                 {#each sentence.segments as seg}
                   {#if seg.pinyin || seg.gloss}
@@ -125,7 +152,10 @@
             {/each}
           </button>
           {#if expandedIdx === idx}
-            <p class="sr-en-expansion">{sentence.en}</p>
+            <div class="sr-en-expansion-wrap">
+              <button class="sr-audio-btn" onclick={() => playSentenceAudio(sentence.zh)} aria-label="Play sentence audio" title="播放">🔊</button>
+              <p class="sr-en-expansion">{sentence.en}</p>
+            </div>
           {/if}
         </div>
       {/each}
@@ -192,6 +222,35 @@
     padding-left: 12px;
     margin: 4px 0 8px;
     animation: sr-expand 250ms ease-out;
+  }
+
+  .sr-expansion-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 4px;
+  }
+
+  .sr-audio-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1.5px solid var(--color-jade, #237a63);
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 150ms ease, transform 100ms ease;
+    flex-shrink: 0;
+  }
+
+  .sr-audio-btn:hover {
+    background: rgba(35, 122, 99, 0.08);
+  }
+
+  .sr-audio-btn:active {
+    transform: scale(0.92);
   }
 
   @keyframes sr-expand {
@@ -295,6 +354,19 @@
     padding-left: 12px;
     border-left: 3px solid var(--color-gold, #cda434);
     animation: sr-expand 250ms ease-out;
+  }
+
+  .sr-en-expansion-wrap {
+    animation: sr-expand 250ms ease-out;
+    margin: 4px 0 var(--space-md);
+  }
+
+  .sr-en-expansion-wrap .sr-audio-btn {
+    margin-bottom: 4px;
+  }
+
+  .sr-en-expansion-wrap .sr-en-expansion {
+    animation: none;
   }
 
   /* Difficulty-based sizing */
