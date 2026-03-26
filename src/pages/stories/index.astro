@@ -2,14 +2,128 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
 
-const stories = (await getCollection('stories')).sort(
-  (a, b) => b.data.date.getTime() - a.data.date.getTime()
-);
+const difficultyMeta = {
+  beginner: {
+    label: 'Beginner',
+    zh: '入门',
+    summary: 'Start with English-led stories, then open the Chinese sentence by sentence.',
+  },
+  intermediate: {
+    label: 'Intermediate',
+    zh: '进阶',
+    summary: 'Move into denser readings with stronger Chinese-first comprehension.',
+  },
+  advanced: {
+    label: 'Advanced',
+    zh: '高阶',
+    summary: 'Longer, richer historical readings for learners ready to stay in Chinese.',
+  },
+} as const;
 
-const difficultyStyle: Record<string, string> = {
+type Difficulty = keyof typeof difficultyMeta;
+
+const difficultyRank: Record<Difficulty, number> = {
+  beginner: 0,
+  intermediate: 1,
+  advanced: 2,
+};
+
+const difficultyStyle: Record<Difficulty, string> = {
   beginner: '--badge-bg: var(--color-jade)',
   intermediate: '--badge-bg: var(--color-gold-leaf); --badge-fg: #3d2e00',
   advanced: '--badge-bg: var(--color-vermillion)',
+};
+
+const storyThemes: Record<
+  string,
+  { glyph: string; kicker: string; accent: string }
+> = {
+  'four-great-inventions': {
+    glyph: '工',
+    kicker: 'Innovation and craft',
+    accent: 'var(--color-gold-leaf)',
+  },
+  'grand-canal': {
+    glyph: '河',
+    kicker: 'Waterways and empire',
+    accent: 'var(--color-jade)',
+  },
+  'mandate-of-heaven': {
+    glyph: '天',
+    kicker: 'Ideas and legitimacy',
+    accent: 'var(--color-vermillion)',
+  },
+  'silk-road': {
+    glyph: '路',
+    kicker: 'Trade and exchange',
+    accent: 'var(--color-gold-leaf)',
+  },
+  'terracotta-warriors': {
+    glyph: '兵',
+    kicker: 'Power and afterlife',
+    accent: 'var(--color-vermillion)',
+  },
+  'zheng-he-voyages': {
+    glyph: '航',
+    kicker: 'Ocean routes',
+    accent: 'var(--color-jade)',
+  },
+};
+
+const enrichedStories = (await getCollection('stories'))
+  .map((entry) => {
+    const difficulty = entry.data.difficulty as Difficulty;
+    const plainText = entry.body
+      .replace(/^---[\s\S]*?---/, '')
+      .replace(/[`*_>#-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const wordCount = plainText ? plainText.split(' ').length : 0;
+    const readingTime = Math.max(3, Math.ceil(wordCount / 180));
+    const visibleTags = (entry.data.tags ?? []).filter(
+      (tag) => tag !== 'Language Learning'
+    );
+    const theme = storyThemes[entry.id] ?? {
+      glyph: '史',
+      kicker: 'Historical reading',
+      accent: 'var(--color-jade)',
+    };
+
+    return {
+      entry,
+      difficulty,
+      visibleTags,
+      theme,
+      wordCount,
+      readingTime,
+      searchText: [
+        entry.data.title,
+        entry.data.excerpt ?? '',
+        entry.data.description ?? '',
+        ...(entry.data.tags ?? []),
+      ]
+        .join(' ')
+        .toLowerCase(),
+    };
+  })
+  .sort((a, b) => {
+    const difficultyCompare = difficultyRank[a.difficulty] - difficultyRank[b.difficulty];
+    if (difficultyCompare !== 0) return difficultyCompare;
+    return b.entry.data.date.getTime() - a.entry.data.date.getTime();
+  });
+
+const featuredStory = enrichedStories[0];
+const totalStories = enrichedStories.length;
+const beginnerCount = enrichedStories.filter((story) => story.difficulty === 'beginner').length;
+const intermediateCount = enrichedStories.filter(
+  (story) => story.difficulty === 'intermediate'
+).length;
+const advancedCount = enrichedStories.filter((story) => story.difficulty === 'advanced').length;
+
+const difficultyCounts: Record<Difficulty, number> = {
+  beginner: beginnerCount,
+  intermediate: intermediateCount,
+  advanced: advancedCount,
 };
 
 function formatDate(date: Date) {
@@ -21,85 +135,194 @@ function formatDate(date: Date) {
 }
 ---
 
-<BaseLayout title="Stories | LoongLore" description="Browse Chinese history stories for all levels — from the Grand Canal to Zheng He's voyages. Each story includes pinyin, glosses, and spaced repetition vocabulary.">
+<BaseLayout
+  title="Stories | LoongLore"
+  description="Browse a curated Chinese history reading library arranged as a learning path, from beginner-friendly stories to richer intermediate readings."
+>
   <main class="stories-page">
-    <header class="stories-header">
-      <h1 class="stories-title">Stories <span class="zh">故事</span></h1>
-    </header>
+    <section class="library-hero">
+      <div class="library-hero__copy">
+        <p class="library-kicker">Curated reading path · 历史故事馆</p>
+        <h1 class="library-title">Choose your next Chinese history story.</h1>
+        <p class="library-lede">
+          This archive is arranged like a learning journey: accessible beginner readings
+          first, then richer material as your Chinese grows. Every story opens into the
+          full LoongLore reading flow with sentence expansion, pinyin, glosses, audio,
+          typing, notebook, and shadow reading.
+        </p>
+      </div>
 
-    {stories.length === 0 ? (
+      <div class="library-hero__panel">
+        <div class="library-hero__stats">
+          <div class="library-stat">
+            <span class="library-stat__label">Stories</span>
+            <strong>{totalStories}</strong>
+          </div>
+          <div class="library-stat">
+            <span class="library-stat__label">Beginner friendly</span>
+            <strong>{beginnerCount}</strong>
+          </div>
+          <div class="library-stat">
+            <span class="library-stat__label">Intermediate</span>
+            <strong>{intermediateCount}</strong>
+          </div>
+          <div class="library-stat">
+            <span class="library-stat__label">Advanced</span>
+            <strong>{advancedCount}</strong>
+          </div>
+        </div>
+
+        {featuredStory && (
+          <a href={`/stories/${featuredStory.entry.id}`} class="hero-recommendation">
+            <span class="hero-recommendation__label">Recommended place to begin</span>
+            <strong>{featuredStory.entry.data.title}</strong>
+            <span>
+              {featuredStory.readingTime} min read · {featuredStory.wordCount} words
+            </span>
+          </a>
+        )}
+      </div>
+    </section>
+
+    <section class="path-strip" aria-label="Difficulty progression">
+      {(['beginner', 'intermediate', 'advanced'] as Difficulty[]).map((level, index) => (
+        <article class="path-card" data-level={level}>
+          <div class="path-card__top">
+            <span class="path-card__step">0{index + 1}</span>
+            <span class="path-card__badge">{difficultyMeta[level].label}</span>
+          </div>
+          <h2>{difficultyMeta[level].zh}</h2>
+          <p>{difficultyMeta[level].summary}</p>
+          <span class="path-card__count">{difficultyCounts[level]} stories</span>
+        </article>
+      ))}
+    </section>
+
+    {totalStories === 0 ? (
       <p class="empty-state">More stories coming soon!</p>
     ) : (
       <>
-        <div class="filter-section">
+        <section class="filter-shell">
+          <div class="filter-shell__header">
+            <div>
+              <p class="filter-kicker">Browse the archive</p>
+              <h2 class="filter-title">Find your next chronicle</h2>
+            </div>
+            <p class="filter-note">
+              Search by topic, dynasty, or title. Or narrow the library by level.
+            </p>
+          </div>
+
           <div class="filter-bar">
-            <button class="filter-pill active" data-filter="all">All</button>
-            <button class="filter-pill" data-filter="beginner">Beginner</button>
-            <button class="filter-pill" data-filter="intermediate">
+            <button type="button" class="filter-pill active" data-filter="all">All</button>
+            <button type="button" class="filter-pill" data-filter="beginner">
+              Beginner
+            </button>
+            <button type="button" class="filter-pill" data-filter="intermediate">
               Intermediate
             </button>
-            <button class="filter-pill" data-filter="advanced">Advanced</button>
+            <button type="button" class="filter-pill" data-filter="advanced">
+              Advanced
+            </button>
             <input
               type="text"
               class="search-input"
-              placeholder="Search by title or tags..."
+              placeholder="Search stories, dynasties, or topics..."
               id="search-input"
             />
           </div>
 
-          <div class="stats-line" id="stats-line">
-            {stories.length} stories · {stories.filter((s) => s.data.difficulty === 'beginner').length} beginner ·
-            {stories.filter((s) => s.data.difficulty === 'intermediate').length} intermediate ·
-            {stories.filter((s) => s.data.difficulty === 'advanced').length} advanced
-          </div>
-        </div>
+          <p class="stats-line" id="stats-line">
+            Showing {totalStories} curated chronicles · {beginnerCount} beginner ·{' '}
+            {intermediateCount} intermediate · {advancedCount} advanced
+          </p>
+        </section>
 
         <ul class="story-grid" role="list" id="story-grid">
-          {stories.map((story) => (
-            <li
-              class="story-item"
-              data-difficulty={story.data.difficulty}
-              data-tags={story.data.tags.join(' ').toLowerCase()}
-              data-title={story.data.title.toLowerCase()}
-            >
-              <a href={`/stories/${story.id}`} class="story-card">
-                <div class="card-top">
-                  <span
-                    class="badge"
-                    style={difficultyStyle[story.data.difficulty]}
+          {enrichedStories.map((story, index) => {
+            const isFeatured = index === 0;
+            const titleTag = isFeatured ? 'h2' : 'h3';
+            const difficultyLabel = difficultyMeta[story.difficulty].label;
+
+            return (
+              <li
+                class={`story-item${isFeatured ? ' story-item--featured' : ''}`}
+                data-difficulty={story.difficulty}
+                data-title={story.entry.data.title.toLowerCase()}
+                data-tags={(story.entry.data.tags ?? []).join(' ').toLowerCase()}
+                data-search={story.searchText}
+              >
+                <a
+                  href={`/stories/${story.entry.id}`}
+                  class={isFeatured ? 'story-feature' : 'story-card'}
+                  style={`--story-accent: ${story.theme.accent};`}
+                >
+                  <div
+                    class={isFeatured ? 'story-feature__wash' : 'story-card__wash'}
+                    aria-hidden="true"
+                  ></div>
+                  <div
+                    class={isFeatured ? 'story-feature__glyph' : 'story-card__glyph'}
+                    aria-hidden="true"
                   >
-                    {story.data.difficulty.charAt(0).toUpperCase() +
-                      story.data.difficulty.slice(1)}
-                  </span>
+                    {story.theme.glyph}
+                  </div>
 
-                  <h2 class="card-title">{story.data.title}</h2>
-
-                  {(story.data.excerpt || story.data.description) && (
-                    <p class="card-excerpt">
-                      {story.data.excerpt || story.data.description}
-                    </p>
-                  )}
-                </div>
-
-                <div class="card-bottom">
-                  {story.data.tags.length > 0 && (
-                    <div class="tag-list">
-                      {story.data.tags.map((tag: string) => (
-                        <span class="tag">{tag}</span>
-                      ))}
+                  <div class={isFeatured ? 'story-feature__content' : 'story-card__content'}>
+                    <div class="story-shell__eyebrow">
+                      <span class="story-shell__index">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span>{isFeatured ? 'Recommended first story' : story.theme.kicker}</span>
                     </div>
-                  )}
-                  <time class="card-date" datetime={story.data.date.toISOString()}>
-                    {formatDate(story.data.date)}
-                  </time>
-                </div>
-              </a>
-            </li>
-          ))}
+
+                    <div class="story-shell__header">
+                      <span class="badge" style={difficultyStyle[story.difficulty]}>
+                        {difficultyLabel}
+                      </span>
+                      <div class="story-shell__meta">
+                        <span>{story.readingTime} min read</span>
+                        <span>{story.wordCount} words</span>
+                      </div>
+                    </div>
+
+                    {titleTag === 'h2' ? (
+                      <h2 class="story-shell__title story-shell__title--featured">
+                        {story.entry.data.title}
+                      </h2>
+                    ) : (
+                      <h3 class="story-shell__title">{story.entry.data.title}</h3>
+                    )}
+
+                    <p class="story-shell__excerpt">
+                      {story.entry.data.excerpt || story.entry.data.description}
+                    </p>
+
+                    <div class="story-shell__footer">
+                      <div class="tag-list">
+                        {story.visibleTags.slice(0, 3).map((tag) => (
+                          <span class="tag">{tag}</span>
+                        ))}
+                      </div>
+                      <time
+                        class="story-shell__date"
+                        datetime={story.entry.data.date.toISOString()}
+                      >
+                        {formatDate(story.entry.data.date)}
+                      </time>
+                    </div>
+
+                    <span class="story-shell__cta">Open story →</span>
+                  </div>
+                </a>
+              </li>
+            );
+          })}
         </ul>
 
         <div class="no-results-message" id="no-results">
-          No stories match your filters.
+          <p>No stories match your filters.</p>
+          <p>Try clearing the search box or switching back to “All”.</p>
         </div>
       </>
     )}
@@ -108,81 +331,313 @@ function formatDate(date: Date) {
 
 <style>
   .stories-page {
-    max-width: 960px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: var(--space-xl) var(--space-md);
+    padding: var(--space-xl) var(--space-md) var(--space-3xl);
   }
 
-  .stories-header {
+  .library-hero {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+    gap: var(--space-xl);
+    align-items: start;
     margin-bottom: var(--space-xl);
-    text-align: center;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border-radius: 32px;
+    border: 1px solid rgba(28, 25, 23, 0.08);
+    background:
+      radial-gradient(circle at top right, rgba(205, 164, 52, 0.16), transparent 34%),
+      radial-gradient(circle at bottom left, rgba(35, 122, 99, 0.1), transparent 28%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.2)),
+      var(--color-bg);
+    box-shadow: var(--shadow-sm);
+    isolation: isolate;
   }
 
-  .stories-title {
+  .library-hero::before {
+    content: '';
+    position: absolute;
+    inset: auto -6rem -7rem auto;
+    width: 18rem;
+    height: 18rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(28, 25, 23, 0.08), transparent 68%);
+    pointer-events: none;
+  }
+
+  .library-kicker,
+  .filter-kicker {
+    margin: 0 0 var(--space-sm);
+    font-size: var(--text-small);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-brand);
+  }
+
+  .library-title {
+    margin: 0 0 var(--space-md);
+    max-width: 11ch;
     font-family: var(--font-display-en), serif;
-    font-size: 2rem;
-    font-weight: 600;
+    font-size: clamp(2.4rem, 6vw, 4.25rem);
+    line-height: 1.02;
     color: var(--color-text-primary);
-    line-height: 1.2;
   }
 
-  .stories-title .zh {
-    font-family: var(--font-display-zh, 'Noto Serif SC'), serif;
-    margin-left: 0.25em;
+  .library-lede {
+    margin: 0;
+    max-width: 60ch;
+    font-size: 1.02rem;
+    line-height: 1.8;
     color: var(--color-text-secondary);
+  }
+
+  .library-hero__panel {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: var(--space-md);
+  }
+
+  .library-hero__stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-sm);
+  }
+
+  .library-stat,
+  .hero-recommendation,
+  .path-card,
+  .filter-shell,
+  .story-feature,
+  .story-card {
+    border: 1px solid rgba(28, 25, 23, 0.08);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .library-stat {
+    padding: var(--space-md);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .library-stat__label {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-size: var(--text-caption);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  .library-stat strong {
+    display: block;
+    font-family: var(--font-display-en), serif;
+    font-size: 1.7rem;
+    line-height: 1;
+    color: var(--color-text-primary);
+  }
+
+  .hero-recommendation {
+    display: grid;
+    gap: 0.25rem;
+    padding: var(--space-lg);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.58);
+    color: inherit;
+    text-decoration: none;
+    transition:
+      transform var(--duration-fast) var(--ease-default),
+      box-shadow var(--duration-fast) var(--ease-default);
+  }
+
+  .hero-recommendation:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .hero-recommendation__label {
+    font-size: var(--text-caption);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .hero-recommendation strong {
+    font-size: 1.1rem;
+    line-height: 1.35;
+  }
+
+  .hero-recommendation span:last-child {
+    color: var(--color-text-secondary);
+    font-size: var(--text-small);
+  }
+
+  .path-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+  }
+
+  .path-card {
+    --level-accent: var(--color-jade);
+    padding: var(--space-lg);
+    border-radius: 24px;
+    background: color-mix(in srgb, var(--color-surface) 84%, white);
+  }
+
+  .path-card[data-level='intermediate'] {
+    --level-accent: var(--color-gold-leaf);
+  }
+
+  .path-card[data-level='advanced'] {
+    --level-accent: var(--color-vermillion);
+  }
+
+  .path-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+  }
+
+  .path-card__step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--level-accent) 28%, transparent);
+    background: color-mix(in srgb, var(--level-accent) 10%, white);
+    color: var(--level-accent);
+    font-size: var(--text-small);
+    font-weight: 700;
+  }
+
+  .path-card__badge {
+    font-size: var(--text-caption);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--level-accent);
+  }
+
+  .path-card h2 {
+    margin: 0 0 var(--space-xs);
+    font-family: var(--font-display-cn), serif;
+    font-size: 1.55rem;
+    line-height: 1.3;
+    color: var(--color-text-primary);
+  }
+
+  .path-card p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+
+  .path-card__count {
+    display: inline-flex;
+    margin-top: var(--space-md);
+    padding: 0.32rem 0.7rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--level-accent) 10%, white);
+    color: var(--color-text-primary);
+    font-size: var(--text-caption);
+    font-weight: 700;
   }
 
   .empty-state {
+    padding: var(--space-3xl) 0;
     text-align: center;
     color: var(--color-text-secondary);
     font-size: 1.1rem;
-    padding: var(--space-3xl) 0;
   }
 
-  .filter-section {
-    margin-bottom: 24px;
+  .filter-shell {
+    margin-bottom: var(--space-xl);
+    padding: var(--space-lg);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.42);
+    backdrop-filter: blur(10px);
+  }
+
+  .filter-shell__header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+
+  .filter-title {
+    margin: 0;
+    font-family: var(--font-display-en), serif;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    line-height: 1.1;
+  }
+
+  .filter-note {
+    margin: 0;
+    max-width: 34ch;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
   }
 
   .filter-bar {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: 0.65rem;
+    align-items: center;
   }
 
   .filter-pill {
-    padding: 6px 16px;
+    min-height: 2.65rem;
+    padding: 0 1rem;
     border-radius: var(--radius-full);
-    font-size: 14px;
+    border: 1px solid var(--color-border-subtle);
+    background: color-mix(in srgb, var(--color-surface) 82%, white);
+    color: var(--color-text-primary);
+    font: inherit;
+    font-size: var(--text-small);
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
-    background: var(--color-surface);
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-    font-family: inherit;
+    transition:
+      transform var(--duration-fast) var(--ease-default),
+      background-color var(--duration-fast) var(--ease-default),
+      border-color var(--duration-fast) var(--ease-default);
   }
 
   .filter-pill:hover {
     transform: translateY(-1px);
+    border-color: rgba(35, 122, 99, 0.32);
   }
 
   .filter-pill.active {
-    background: var(--color-vermillion);
-    color: white;
-    border-color: var(--color-vermillion);
+    background: var(--color-ink);
+    color: var(--color-parchment);
+    border-color: var(--color-ink);
   }
 
   .search-input {
-    width: 200px;
-    height: 36px;
-    border: 1px solid var(--color-border);
+    flex: 1;
+    min-width: 14rem;
+    min-height: 2.65rem;
+    padding: 0 1rem;
     border-radius: var(--radius-full);
-    padding: 0 16px;
-    background: var(--color-surface);
-    color: var(--color-text);
-    font-size: 14px;
-    font-family: inherit;
-    transition: all 0.2s;
+    border: 1px solid var(--color-border-subtle);
+    background: rgba(255, 255, 255, 0.65);
+    color: var(--color-text-primary);
+    font: inherit;
+    transition:
+      border-color var(--duration-fast) var(--ease-default),
+      box-shadow var(--duration-fast) var(--ease-default);
   }
 
   .search-input::placeholder {
@@ -191,229 +646,413 @@ function formatDate(date: Date) {
 
   .search-input:focus {
     outline: none;
-    border-color: var(--color-vermillion);
-    box-shadow: 0 0 0 3px rgba(220, 88, 50, 0.1);
-  }
-
-  @media (max-width: 640px) {
-    .search-input {
-      flex: 1;
-      min-width: 150px;
-    }
+    border-color: rgba(35, 122, 99, 0.42);
+    box-shadow: 0 0 0 3px rgba(35, 122, 99, 0.1);
   }
 
   .stats-line {
-    font-size: 14px;
+    margin: var(--space-md) 0 0;
+    font-size: var(--text-small);
     color: var(--color-text-secondary);
-    margin-bottom: 16px;
   }
 
   .story-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
     gap: var(--space-lg);
     list-style: none;
     padding: 0;
     margin: 0;
   }
 
-  @media (min-width: 640px) {
-    .story-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (min-width: 960px) {
-    .story-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
   .story-item {
-    transition: opacity 0.2s;
+    grid-column: span 12;
+    min-width: 0;
   }
 
   .story-item.hidden {
     display: none;
   }
 
+  .story-feature,
   .story-card {
+    position: relative;
+    display: block;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 28px;
+    background: linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--color-parchment) 88%, white),
+      color-mix(in srgb, var(--color-parchment) 76%, var(--story-accent) 8%)
+    );
+    color: inherit;
+    text-decoration: none;
+    isolation: isolate;
+    transition:
+      transform var(--duration-fast) var(--ease-default),
+      box-shadow var(--duration-fast) var(--ease-default),
+      border-color var(--duration-fast) var(--ease-default);
+  }
+
+  .story-feature:hover,
+  .story-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: color-mix(in srgb, var(--story-accent) 28%, rgba(28, 25, 23, 0.08));
+  }
+
+  .story-feature__wash,
+  .story-card__wash {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at top right, color-mix(in srgb, var(--story-accent) 20%, transparent), transparent 34%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.52), transparent 62%);
+    pointer-events: none;
+  }
+
+  .story-feature__glyph,
+  .story-card__glyph {
+    position: absolute;
+    top: -0.18em;
+    right: 0.02em;
+    z-index: 0;
+    font-family: var(--font-display-cn), serif;
+    line-height: 1;
+    color: color-mix(in srgb, var(--story-accent) 16%, transparent);
+    pointer-events: none;
+  }
+
+  .story-feature__glyph {
+    font-size: clamp(8rem, 20vw, 15rem);
+  }
+
+  .story-card__glyph {
+    font-size: clamp(6rem, 15vw, 8rem);
+  }
+
+  .story-feature__content,
+  .story-card__content {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
-    background: var(--color-parchment);
-    border: 1px solid rgba(28, 25, 23, 0.08);
-    border-radius: 16px;
+    gap: var(--space-md);
+    min-height: 100%;
+  }
+
+  .story-feature__content {
+    padding: clamp(1.5rem, 4vw, 2.8rem);
+    min-height: 24rem;
+  }
+
+  .story-card__content {
     padding: var(--space-lg);
-    text-decoration: none;
-    color: inherit;
-    transition:
-      box-shadow 0.2s ease,
-      transform 0.2s ease;
+    min-height: 22rem;
   }
 
-  .story-card:hover {
-    box-shadow:
-      0 4px 6px -1px rgba(28, 25, 23, 0.1),
-      0 2px 4px -2px rgba(28, 25, 23, 0.1);
-    transform: translateY(-2px);
+  .story-shell__eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: var(--text-caption);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
   }
 
-  .card-top {
-    flex: 1;
+  .story-shell__index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.55rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--story-accent) 26%, transparent);
+    background: color-mix(in srgb, var(--story-accent) 12%, white);
+    color: var(--story-accent);
+  }
+
+  .story-shell__header {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
   }
 
   .badge {
-    display: inline-block;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 0.15em 0.65em;
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.9rem;
+    padding: 0 0.8rem;
     border-radius: 999px;
     background: var(--badge-bg);
     color: var(--badge-fg, #fff);
-    margin-bottom: var(--space-sm);
+    font-size: var(--text-caption);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
 
-  .card-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    line-height: 1.35;
-    color: var(--color-text-primary);
-    margin: 0 0 var(--space-xs);
-  }
-
-  .card-excerpt {
-    font-size: 0.9rem;
-    line-height: 1.5;
+  .story-shell__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: var(--text-caption);
     color: var(--color-text-secondary);
+  }
+
+  .story-shell__title {
     margin: 0;
+    font-family: var(--font-display-en), serif;
+    font-size: 1.45rem;
+    line-height: 1.15;
+    color: var(--color-text-primary);
+  }
+
+  .story-shell__title--featured {
+    max-width: 11ch;
+    font-size: clamp(2rem, 4.4vw, 3.35rem);
+  }
+
+  .story-shell__excerpt {
+    margin: 0;
+    max-width: 58ch;
+    color: var(--color-text-secondary);
+    line-height: 1.75;
+  }
+
+  .story-card .story-shell__excerpt {
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  .card-bottom {
-    margin-top: var(--space-md);
+  .story-shell__footer {
+    margin-top: auto;
     display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-md);
+    flex-wrap: wrap;
   }
 
   .tag-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.35em;
+    gap: 0.45rem;
   }
 
   .tag {
-    font-size: 0.7rem;
-    padding: 0.15em 0.55em;
+    padding: 0.28rem 0.65rem;
     border-radius: 999px;
     background: rgba(28, 25, 23, 0.06);
     color: var(--color-text-secondary);
+    font-size: var(--text-caption);
     white-space: nowrap;
   }
 
-  .card-date {
-    font-size: 0.8rem;
+  .story-shell__date {
     color: var(--color-text-secondary);
+    font-size: var(--text-caption);
+    white-space: nowrap;
+  }
+
+  .story-shell__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--story-accent);
+    font-size: var(--text-small);
+    font-weight: 700;
   }
 
   .no-results-message {
     display: none;
+    padding: var(--space-2xl) 0 var(--space-lg);
     text-align: center;
+  }
+
+  .no-results-message p {
+    margin: 0;
     color: var(--color-text-secondary);
-    font-size: 1rem;
-    padding: var(--space-2xl) 0;
+  }
+
+  .no-results-message p + p {
+    margin-top: var(--space-xs);
+    font-size: var(--text-small);
   }
 
   .no-results-message.visible {
     display: block;
   }
 
-  /* Dark mode overrides */
-  :global([data-theme='dark']) .story-card {
-    background: var(--color-surface);
+  @media (min-width: 720px) {
+    .story-item:not(.story-item--featured) {
+      grid-column: span 6;
+    }
+  }
+
+  @media (min-width: 1080px) {
+    .story-item:not(.story-item--featured) {
+      grid-column: span 4;
+    }
+  }
+
+  @media (max-width: 959px) {
+    .library-hero {
+      grid-template-columns: 1fr;
+    }
+
+    .filter-shell__header {
+      align-items: start;
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .stories-page {
+      padding-top: var(--space-lg);
+    }
+
+    .path-strip,
+    .library-hero__stats {
+      grid-template-columns: 1fr;
+    }
+
+    .filter-shell,
+    .path-card,
+    .story-card__content {
+      padding: var(--space-md);
+    }
+
+    .story-feature__content {
+      padding: var(--space-lg);
+      min-height: 20rem;
+    }
+
+    .story-feature__glyph {
+      font-size: 7rem;
+      top: -0.08em;
+    }
+
+    .search-input {
+      min-width: 100%;
+    }
+  }
+
+  :global([data-theme='dark']) .library-hero,
+  :global([data-theme='dark']) .path-card,
+  :global([data-theme='dark']) .filter-shell,
+  :global([data-theme='dark']) .story-feature,
+  :global([data-theme='dark']) .story-card,
+  :global([data-theme='dark']) .library-stat,
+  :global([data-theme='dark']) .hero-recommendation {
     border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global([data-theme='dark']) .library-hero {
+    background:
+      radial-gradient(circle at top right, rgba(205, 164, 52, 0.12), transparent 34%),
+      radial-gradient(circle at bottom left, rgba(35, 122, 99, 0.1), transparent 28%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)),
+      var(--color-bg);
+  }
+
+  :global([data-theme='dark']) .library-stat,
+  :global([data-theme='dark']) .hero-recommendation,
+  :global([data-theme='dark']) .filter-shell {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  :global([data-theme='dark']) .story-feature,
+  :global([data-theme='dark']) .story-card {
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.03),
+      color-mix(in srgb, var(--color-surface) 90%, var(--story-accent) 10%)
+    );
+  }
+
+  :global([data-theme='dark']) .story-feature__wash,
+  :global([data-theme='dark']) .story-card__wash {
+    background:
+      radial-gradient(circle at top right, color-mix(in srgb, var(--story-accent) 16%, transparent), transparent 34%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 62%);
   }
 
   :global([data-theme='dark']) .tag {
     background: rgba(255, 255, 255, 0.08);
   }
-
-  :global([data-theme='dark']) .story-card:hover {
-    box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.3),
-      0 2px 4px -2px rgba(0, 0, 0, 0.2);
-  }
 </style>
 
 <script is:inline>
-  // Client-side filtering script
-  const filterPills = document.querySelectorAll('.filter-pill');
+  const filterPills = Array.from(document.querySelectorAll('.filter-pill'));
   const searchInput = document.getElementById('search-input');
-  const storyItems = document.querySelectorAll('.story-item');
+  const storyItems = Array.from(document.querySelectorAll('.story-item'));
   const noResultsMessage = document.getElementById('no-results');
+  const statsLine = document.getElementById('stats-line');
 
   let currentFilter = 'all';
   let currentSearch = '';
+
+  function renderStats(visibleCount) {
+    if (!statsLine) return;
+
+    const filterLabel =
+      currentFilter === 'all'
+        ? 'all levels'
+        : currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1);
+    const searchLabel = currentSearch ? ` · search: "${currentSearch}"` : '';
+    statsLine.textContent = `Showing ${visibleCount} of ${storyItems.length} chronicles · ${filterLabel}${searchLabel}`;
+  }
 
   function applyFilters() {
     let visibleCount = 0;
 
     storyItems.forEach((item) => {
-      const difficulty = item.getAttribute('data-difficulty');
-      const tags = item.getAttribute('data-tags');
-      const title = item.getAttribute('data-title');
-
-      // Check difficulty filter
+      const difficulty = item.getAttribute('data-difficulty') || '';
+      const searchable = item.getAttribute('data-search') || '';
       const matchesDifficulty = currentFilter === 'all' || difficulty === currentFilter;
-
-      // Check search filter
-      const searchLower = currentSearch.toLowerCase();
       const matchesSearch =
-        !currentSearch ||
-        title.includes(searchLower) ||
-        tags.includes(searchLower);
+        !currentSearch || searchable.includes(currentSearch.toLowerCase());
 
-      // Apply visibility
       if (matchesDifficulty && matchesSearch) {
         item.classList.remove('hidden');
-        visibleCount++;
+        visibleCount += 1;
       } else {
         item.classList.add('hidden');
       }
     });
 
-    // Show/hide no results message
-    if (visibleCount === 0) {
-      noResultsMessage.classList.add('visible');
-    } else {
-      noResultsMessage.classList.remove('visible');
+    if (noResultsMessage) {
+      noResultsMessage.classList.toggle('visible', visibleCount === 0);
     }
+
+    renderStats(visibleCount);
   }
 
-  // Filter pill click handlers
   filterPills.forEach((pill) => {
-    pill.addEventListener('click', (e) => {
-      const filter = e.target.getAttribute('data-filter');
-      currentFilter = filter;
-
-      // Update active state
-      filterPills.forEach((p) => p.classList.remove('active'));
-      e.target.classList.add('active');
-
+    pill.addEventListener('click', () => {
+      currentFilter = pill.getAttribute('data-filter') || 'all';
+      filterPills.forEach((otherPill) => otherPill.classList.remove('active'));
+      pill.classList.add('active');
       applyFilters();
     });
   });
 
-  // Search input handler
-  searchInput.addEventListener('input', (e) => {
-    currentSearch = e.target.value;
-    applyFilters();
-  });
+  if (searchInput) {
+    searchInput.addEventListener('input', (event) => {
+      const target = event.target;
+      currentSearch = target && 'value' in target ? target.value.trim() : '';
+      applyFilters();
+    });
+  }
+
+  applyFilters();
 </script>
