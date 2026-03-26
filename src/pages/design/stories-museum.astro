@@ -1,0 +1,436 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+const difficultyMeta = {
+  beginner: {
+    label: 'Beginner',
+    roomTitle: 'Gallery I · First encounters',
+    roomCopy:
+      'A welcoming room for first contact: guided readings, clear sentence support, and approachable historical themes.',
+  },
+  intermediate: {
+    label: 'Intermediate',
+    roomTitle: 'Gallery II · Deeper context',
+    roomCopy:
+      'Stories with more density and stronger Chinese-first rhythm, presented like featured exhibition pieces.',
+  },
+  advanced: {
+    label: 'Advanced',
+    roomTitle: 'Gallery III · Reserved wing',
+    roomCopy:
+      'A future room for long-form readings, denser source material, and more advanced immersion.',
+  },
+} as const;
+
+type Difficulty = keyof typeof difficultyMeta;
+
+const difficultyRank: Record<Difficulty, number> = {
+  beginner: 0,
+  intermediate: 1,
+  advanced: 2,
+};
+
+const storyThemes: Record<
+  string,
+  { glyph: string; kicker: string; accent: string }
+> = {
+  'four-great-inventions': {
+    glyph: '工',
+    kicker: 'Innovation and craft',
+    accent: 'var(--color-gold-leaf)',
+  },
+  'grand-canal': {
+    glyph: '河',
+    kicker: 'Waterways and empire',
+    accent: 'var(--color-jade)',
+  },
+  'mandate-of-heaven': {
+    glyph: '天',
+    kicker: 'Ideas and legitimacy',
+    accent: 'var(--color-vermillion)',
+  },
+  'silk-road': {
+    glyph: '路',
+    kicker: 'Trade and exchange',
+    accent: 'var(--color-gold-leaf)',
+  },
+  'terracotta-warriors': {
+    glyph: '兵',
+    kicker: 'Power and afterlife',
+    accent: 'var(--color-vermillion)',
+  },
+  'zheng-he-voyages': {
+    glyph: '航',
+    kicker: 'Ocean routes',
+    accent: 'var(--color-jade)',
+  },
+};
+
+const stories = (await getCollection('stories'))
+  .map((entry) => {
+    const difficulty = entry.data.difficulty as Difficulty;
+    const plainText = (entry.body ?? '')
+      .replace(/^---[\s\S]*?---/, '')
+      .replace(/[`*_>#-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const wordCount = plainText ? plainText.split(' ').length : 0;
+    const readingTime = Math.max(3, Math.ceil(wordCount / 180));
+    const visibleTags = (entry.data.tags ?? []).filter(
+      (tag) => tag !== 'Language Learning'
+    );
+    const theme = storyThemes[entry.id] ?? {
+      glyph: '史',
+      kicker: 'Historical reading',
+      accent: 'var(--color-jade)',
+    };
+
+    return {
+      entry,
+      difficulty,
+      readingTime,
+      wordCount,
+      visibleTags,
+      theme,
+    };
+  })
+  .sort((a, b) => b.entry.data.date.getTime() - a.entry.data.date.getTime());
+
+const rooms = (['beginner', 'intermediate', 'advanced'] as Difficulty[]).map((level) => ({
+  level,
+  ...difficultyMeta[level],
+  items: stories
+    .filter((story) => story.difficulty === level)
+    .sort(
+      (a, b) =>
+        difficultyRank[a.difficulty] - difficultyRank[b.difficulty] ||
+        b.entry.data.date.getTime() - a.entry.data.date.getTime()
+    ),
+}));
+---
+
+<BaseLayout
+  title="Stories Preview — Museum Exhibit | LoongLore"
+  description="Concept preview: the stories archive reimagined as a curated museum exhibit."
+>
+  <main class="museum-page">
+    <nav class="preview-switcher" aria-label="Design preview switcher">
+      <span class="preview-switcher__label">Design previews</span>
+      <a href="/design/stories-museum" aria-current="page">Museum exhibit</a>
+      <a href="/design/stories-timeline">Historical scroll</a>
+      <a href="/design/stories-archive">Archive dossier</a>
+      <a href="/design/stories-editorial">Editorial magazine</a>
+      <a href="/stories">Current live page</a>
+    </nav>
+
+    <header class="museum-hero">
+      <div class="museum-hero__copy">
+        <p class="museum-kicker">Concept 01 · Museum exhibit</p>
+        <h1>Turn the archive into a curated Chinese history exhibition.</h1>
+        <p class="museum-lede">
+          This direction treats each story like an object on display: gallery rooms,
+          framed highlights, wall labels, and a stronger sense of curation.
+        </p>
+      </div>
+
+      <aside class="museum-ticket">
+        <span class="museum-ticket__label">Curator's note</span>
+        <p>
+          The learner should feel guided through a special exhibition, not dropped into
+          a content catalog.
+        </p>
+      </aside>
+    </header>
+
+    {rooms.map((room, roomIndex) => (
+      <section class="gallery-room" data-level={room.level}>
+        <div class="gallery-room__heading">
+          <p class="gallery-room__index">Room 0{roomIndex + 1}</p>
+          <h2>{room.roomTitle}</h2>
+          <p>{room.roomCopy}</p>
+        </div>
+
+        {room.items.length > 0 ? (
+          <div class="gallery-grid">
+            {room.items.map((story, storyIndex) => (
+              <a
+                href={`/stories/${story.entry.id}`}
+                class={`artifact-card${storyIndex === 0 ? ' artifact-card--featured' : ''}`}
+                style={`--accent: ${story.theme.accent};`}
+              >
+                <div class="artifact-card__plaque">
+                  {story.theme.kicker} · {difficultyMeta[story.difficulty].label}
+                </div>
+                <div class="artifact-card__glyph" aria-hidden="true">{story.theme.glyph}</div>
+                <h3>{story.entry.data.title}</h3>
+                <p>{story.entry.data.excerpt || story.entry.data.description}</p>
+                <div class="artifact-card__footer">
+                  <span>{story.readingTime} min · {story.wordCount} words</span>
+                  <span>{story.visibleTags.slice(0, 2).join(' · ')}</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div class="gallery-empty">
+            <span>Reserved for future acquisitions</span>
+            <p>The advanced wing is waiting for long-form readings and denser texts.</p>
+          </div>
+        )}
+      </section>
+    ))}
+  </main>
+</BaseLayout>
+
+<style>
+  .museum-page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md) var(--space-3xl);
+    background:
+      radial-gradient(circle at top, rgba(205, 164, 52, 0.08), transparent 24%),
+      linear-gradient(180deg, rgba(28, 25, 23, 0.96), rgba(28, 25, 23, 0.92));
+    color: var(--color-parchment);
+    border-radius: 36px;
+  }
+
+  .preview-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+  }
+
+  .preview-switcher__label {
+    font-size: var(--text-caption);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(245, 240, 230, 0.72);
+  }
+
+  .preview-switcher a {
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid rgba(245, 240, 230, 0.14);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--color-parchment);
+    text-decoration: none;
+    font-size: var(--text-small);
+    transition:
+      transform var(--duration-fast) var(--ease-default),
+      border-color var(--duration-fast) var(--ease-default);
+  }
+
+  .preview-switcher a[aria-current='page'] {
+    background: var(--color-gold-leaf);
+    border-color: var(--color-gold-leaf);
+    color: var(--color-ink);
+  }
+
+  .preview-switcher a:hover {
+    transform: translateY(-1px);
+    border-color: rgba(205, 164, 52, 0.4);
+  }
+
+  .museum-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+    gap: var(--space-xl);
+    align-items: end;
+    margin-bottom: var(--space-2xl);
+    padding-bottom: var(--space-xl);
+    border-bottom: 1px solid rgba(245, 240, 230, 0.12);
+  }
+
+  .museum-kicker {
+    margin: 0 0 var(--space-sm);
+    font-size: var(--text-small);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-gold-leaf);
+  }
+
+  .museum-hero h1 {
+    margin: 0 0 var(--space-md);
+    max-width: 11.5ch;
+    font-family: var(--font-display-en), serif;
+    font-size: clamp(2.6rem, 6vw, 4.6rem);
+    line-height: 1;
+    color: var(--color-parchment);
+  }
+
+  .museum-lede,
+  .museum-ticket p,
+  .gallery-room__heading p,
+  .artifact-card p,
+  .artifact-card__footer,
+  .gallery-empty p {
+    color: rgba(245, 240, 230, 0.76);
+    line-height: 1.8;
+  }
+
+  .museum-ticket {
+    padding: var(--space-lg);
+    border-radius: 24px;
+    border: 1px solid rgba(245, 240, 230, 0.12);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+      rgba(255, 255, 255, 0.03);
+  }
+
+  .museum-ticket__label,
+  .gallery-room__index {
+    display: inline-block;
+    margin-bottom: var(--space-sm);
+    font-size: var(--text-caption);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-gold-leaf);
+  }
+
+  .gallery-room {
+    margin-bottom: var(--space-2xl);
+  }
+
+  .gallery-room__heading {
+    max-width: 44rem;
+    margin-bottom: var(--space-lg);
+  }
+
+  .gallery-room__heading h2 {
+    margin: 0 0 var(--space-xs);
+    font-family: var(--font-display-en), serif;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    color: var(--color-parchment);
+  }
+
+  .gallery-room__heading p {
+    margin: 0;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-lg);
+  }
+
+  .artifact-card {
+    position: relative;
+    display: block;
+    grid-column: span 4;
+    min-height: 22rem;
+    padding: var(--space-lg);
+    border-radius: 28px;
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, rgba(245, 240, 230, 0.14));
+    background:
+      radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 16%, transparent), transparent 34%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 70%),
+      rgba(255, 255, 255, 0.04);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+    color: inherit;
+    text-decoration: none;
+    overflow: hidden;
+    transition:
+      transform var(--duration-fast) var(--ease-default),
+      box-shadow var(--duration-fast) var(--ease-default);
+    isolation: isolate;
+  }
+
+  .artifact-card--featured {
+    grid-column: span 6;
+  }
+
+  .artifact-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
+  }
+
+  .artifact-card__plaque {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    width: fit-content;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 16%, rgba(245, 240, 230, 0.08));
+    font-size: var(--text-caption);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-parchment);
+  }
+
+  .artifact-card__glyph {
+    position: absolute;
+    top: -0.08em;
+    right: 0.08em;
+    font-family: var(--font-display-cn), serif;
+    font-size: clamp(5rem, 12vw, 7rem);
+    line-height: 1;
+    color: color-mix(in srgb, var(--accent) 20%, transparent);
+    pointer-events: none;
+  }
+
+  .artifact-card h3 {
+    position: relative;
+    z-index: 1;
+    margin: var(--space-md) 0 var(--space-sm);
+    font-family: var(--font-display-en), serif;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    line-height: 1.08;
+    color: var(--color-parchment);
+  }
+
+  .artifact-card p {
+    position: relative;
+    z-index: 1;
+    margin: 0 0 var(--space-lg);
+  }
+
+  .artifact-card__footer {
+    position: relative;
+    z-index: 1;
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    justify-content: space-between;
+    font-size: var(--text-small);
+  }
+
+  .gallery-empty {
+    padding: var(--space-xl);
+    border-radius: 28px;
+    border: 1px dashed rgba(245, 240, 230, 0.18);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .gallery-empty span {
+    display: inline-block;
+    margin-bottom: var(--space-sm);
+    font-family: var(--font-display-en), serif;
+    font-size: 1.25rem;
+  }
+
+  @media (max-width: 960px) {
+    .museum-hero {
+      grid-template-columns: 1fr;
+    }
+
+    .artifact-card,
+    .artifact-card--featured {
+      grid-column: span 12;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .museum-page {
+      padding-top: var(--space-lg);
+    }
+  }
+</style>
