@@ -73,7 +73,7 @@ const storyThemes: Record<
 const enrichedStories = (await getCollection('stories'))
   .map((entry) => {
     const difficulty = entry.data.difficulty as Difficulty;
-    const plainText = entry.body
+    const plainText = (entry.body ?? '')
       .replace(/^---[\s\S]*?---/, '')
       .replace(/[`*_>#-]/g, ' ')
       .replace(/\s+/g, ' ')
