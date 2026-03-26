@@ -1,6 +1,7 @@
 <script>
   /** @typedef {{ id: string, en: string, zh: string, segments: Array<{text: string, pinyin?: string, gloss?: string}> }} Sentence */
   import TypingPractice from './TypingPractice.svelte';
+  import ShadowReader from './ShadowReader.svelte';
 
   let {
     /** @type {'en-first' | 'zh-first'} */
@@ -72,6 +73,10 @@
   });
 
   function toggleSentence(idx) {
+    if (expandedIdx !== idx) {
+      typingIdx = null;
+      shadowIdx = null;
+    }
     expandedIdx = expandedIdx === idx ? null : idx;
   }
 
@@ -81,13 +86,25 @@
 
   /** @type {number | null} */
   let typingIdx = $state(null);
+  /** @type {number | null} */
+  let shadowIdx = $state(null);
 
   function startTyping(idx) {
+    shadowIdx = null;
     typingIdx = idx;
   }
 
   function closeTyping() {
     typingIdx = null;
+  }
+
+  function startShadow(idx) {
+    typingIdx = null;
+    shadowIdx = idx;
+  }
+
+  function closeShadow() {
+    shadowIdx = null;
   }
 </script>
 
@@ -121,6 +138,7 @@
             <div class="sr-expansion" data-sentence-id={sentence.id}>
               <div class="sr-expansion-header">
                 <button class="sr-audio-btn" onclick={() => playSentenceAudio(sentence.zh)} aria-label="Play sentence audio" title="播放">🔊</button>
+                <button class="sr-shadow-btn" onclick={() => startShadow(idx)} aria-label="Shadow read this sentence" title="跟读">🗣️</button>
                 <button class="sr-typing-btn" onclick={() => startTyping(idx)} aria-label="Practice typing" title="打字练习">⌨️</button>
               </div>
               <p class="sr-zh" lang="zh-CN">
@@ -143,6 +161,9 @@
                   onComplete={closeTyping}
                   onClose={closeTyping}
                 />
+              {/if}
+              {#if shadowIdx === idx}
+                <ShadowReader sentence={sentence} onClose={closeShadow} />
               {/if}
             </div>
           {/if}
@@ -175,6 +196,7 @@
             <div class="sr-en-expansion-wrap">
               <div class="sr-expansion-header">
                 <button class="sr-audio-btn" onclick={() => playSentenceAudio(sentence.zh)} aria-label="Play sentence audio" title="播放">🔊</button>
+                <button class="sr-shadow-btn" onclick={() => startShadow(idx)} aria-label="Shadow read this sentence" title="跟读">🗣️</button>
                 <button class="sr-typing-btn" onclick={() => startTyping(idx)} aria-label="Practice typing" title="打字练习">⌨️</button>
               </div>
               <p class="sr-en-expansion">{sentence.en}</p>
@@ -184,6 +206,9 @@
                   onComplete={closeTyping}
                   onClose={closeTyping}
                 />
+              {/if}
+              {#if shadowIdx === idx}
+                <ShadowReader sentence={sentence} onClose={closeShadow} />
               {/if}
             </div>
           {/if}
@@ -261,7 +286,7 @@
     margin-bottom: 4px;
   }
 
-  .sr-audio-btn, .sr-typing-btn {
+  .sr-audio-btn, .sr-shadow-btn, .sr-typing-btn {
     width: 36px;
     height: 36px;
     display: flex;
@@ -276,11 +301,15 @@
     flex-shrink: 0;
   }
 
-  .sr-audio-btn:hover {
+  .sr-audio-btn:hover,
+  .sr-shadow-btn:hover,
+  .sr-typing-btn:hover {
     background: rgba(35, 122, 99, 0.08);
   }
 
-  .sr-audio-btn:active {
+  .sr-audio-btn:active,
+  .sr-shadow-btn:active,
+  .sr-typing-btn:active {
     transform: scale(0.92);
   }
 
@@ -392,7 +421,9 @@
     margin: 4px 0 var(--space-md);
   }
 
-  .sr-en-expansion-wrap .sr-audio-btn {
+  .sr-en-expansion-wrap .sr-audio-btn,
+  .sr-en-expansion-wrap .sr-shadow-btn,
+  .sr-en-expansion-wrap .sr-typing-btn {
     margin-bottom: 4px;
   }
 
